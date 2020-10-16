@@ -3,28 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="../static/css/style.css">
     <title>Anonymous chat</title>
 </head>
 <body>
 
     <h2>Anonymous chat</h2>
 
-    <div class="container">
-      <p>Hello. How are you today?</p>
-      <span class="time-right">11:00</span>
+    <div class="chat">
+
+        <div class="messages">
+
+            <div class="container" id="message">
+              <p>Hello. How are you today?</p>
+              <span class="name-right">11ad:0ahdrahrahr0</span>
+            </div>
+
+
+            <div class="container">
+              <p>Sweet! So, what do you wanna do today?</p>
+              <span class="name-right">aghe4g34t3</span>
+            </div>
+
+        </div>
+
+        <div class="chat-input">
+            <form action="/" method="post" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" id="chat-form">
+                <input id="chat-text" name="input-chat" type="text" value="" placeholder="Введите сообщение"/>
+                <input type="submit" class="form-submit" value="Send :)"/>
+            </form>
+        </div>
+
     </div>
 
+    <script type="text/javascript"></script>
+    <script>
+        var block = document.getElementById("block");
+        block.scrollTop = block.scrollHeight;
+    </script>
 
-    <div class="container">
-      <p>Sweet! So, what do you wanna do today?</p>
-      <span class="time-right">11:02</span>
-    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function (){
 
-    <form action="/" method="post" accept-charset="utf-8" enctype="application/x-www-form-urlencoded">
-        <input id="input-chat" name="input-chat" type="text" value=""/>
-        <input type="submit" value="Send"/>
-    </form>
+        })
+    </script>
+
+
 
 </body>
 </html>
