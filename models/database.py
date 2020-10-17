@@ -4,28 +4,27 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 class User:
 
     @staticmethod
-    async def check_user(db: AsyncIOMotorDatabase, data):
-        user = await db.Usercollection.find_one({'username': data['username']})
+    async def get_user(db: AsyncIOMotorDatabase, data):
+        user = await db.Usercollection.find_one({'username': data})
         if user:
-            return dict()
+            return True
+        else:
+            return False
 
     @staticmethod
     async def create_user(db: AsyncIOMotorDatabase, data):
-        await db.Usercollection.insert_one({'username': data})
+        await db.Usercollection.insert_one({'username': str(data)})
         return {'status': 200}
 
 
 class Message:
 
     @staticmethod
-    async def save_message(db: AsyncIOMotorDatabase,  user, message):
+    async def save_message(db: AsyncIOMotorDatabase,  user, message: str):
         await db.Aiocollection.insert_one({'user': user, 'message': message})
-        return {'status': 200}
+        return True
 
     @staticmethod
     async def get_all_message(db: AsyncIOMotorDatabase):
-        lst = []
-        cursor = db.Aiocollection.find()
-        for elem in await cursor:
-            lst.append(elem)
-        return lst
+        cursor = db.Aiocollection.find().to_list()
+        return cursor

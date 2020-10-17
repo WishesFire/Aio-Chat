@@ -12,7 +12,7 @@
 
     <div class="chat">
 
-        <div class="messages">
+        <div class="messages-form" id="mess_form">
 
             <div class="container" id="message">
               <p>Hello. How are you today?</p>
@@ -29,27 +29,18 @@
 
         <div class="chat-input">
             <form action="/" method="post" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" id="chat-form">
-                <input id="chat-text" name="input-chat" type="text" value="" placeholder="Введите сообщение"/>
+                <textarea rows="5" id="chat-text" name="chat-text" type="text" value="" placeholder="Введите сообщение"></textarea>
                 <input type="submit" class="form-submit" value="Send :)"/>
             </form>
         </div>
 
     </div>
 
-    <script type="text/javascript"></script>
-    <script>
-        var block = document.getElementById("block");
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        var block = document.getElementById("mess_form");
         block.scrollTop = block.scrollHeight;
     </script>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-        $(document).ready(function (){
-
-        })
-    </script>
-
-
 
 </body>
 </html>

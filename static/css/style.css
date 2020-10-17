@@ -9,6 +9,10 @@ body {
 
 .chat {
     background-color: darkgrey;
+    width: 700px;
+    height: 200px;
+    border: darkcyan solid 2px;
+    border-radius: 4px;
 }
 
 
