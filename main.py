@@ -11,7 +11,7 @@ from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from motor.motor_asyncio import AsyncIOMotorClient
 
 BASE_DIR = f'{os.path.dirname(os.path.dirname(__file__))}/aiochat/templates'
-MONGO_HOST = 'mongodb://user:pass@mongo_host:mongo_port/mongo_database'
+MONGO_HOST = '*'
 SECRET_KEY = '68028350928350928502899'
 
 def main():
@@ -28,7 +28,7 @@ def main():
     setup(app, EncryptedCookieStorage(secret_key))
 
     app.router.add_route('GET', '/', Chat, name='root')
-    app.router.add_route('GET', '/ws', WebSocket, name='root')
+    app.router.add_route('GET', '/ws', WebSocket, name='sockets')
     app.router.add_static('/static', 'static', name='static')
 
     logging.basicConfig(level=logging.DEBUG)

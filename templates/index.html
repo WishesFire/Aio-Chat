@@ -9,28 +9,26 @@
 <body>
 
     <h2>Anonymous chat</h2>
+    <p>Your nick is {{ user }}}</p>
 
     <div class="chat">
 
         <div class="messages-form" id="mess_form">
 
-            <div class="container" id="message">
-              <p>Hello. How are you today?</p>
-              <span class="name-right">11ad:0ahdrahrahr0</span>
-            </div>
+            {% for message in messages %}
 
+                <div class="container" id="message">
+                  <p>{{ message['message'] }}</p>
+                  <span class="name-right">{{ message['user'] }}</span>
+                </div>
 
-            <div class="container">
-              <p>Sweet! So, what do you wanna do today?</p>
-              <span class="name-right">aghe4g34t3</span>
-            </div>
-
+            {% endfor %}
         </div>
 
         <div class="chat-input">
             <form action="/" method="post" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" id="chat-form">
                 <textarea rows="5" id="chat-text" name="chat-text" type="text" value="" placeholder="Введите сообщение"></textarea>
-                <input type="submit" class="form-submit" value="Send :)"/>
+                <input id="submit" type="submit" class="form-submit" value="Send :)"/>
             </form>
         </div>
 
@@ -40,6 +38,76 @@
     <script type="text/javascript">
         var block = document.getElementById("mess_form");
         block.scrollTop = block.scrollHeight;
+        console.log('Start');
+
+        try{
+            var socket = new WebSocket('ws://' + window.location.host + '/ws');
+        }
+        catch(err){
+            var socket = new WebSocket('wss://' + window.location.host + '/ws');
+        }
+
+        function showMessage(message) {
+            console.log(message);
+            console.log(message.data);
+
+            var mainElem = $('#chat'), height = 0;
+            var dataObj = JSON.parse(message.data);
+            if (!!dataObj.texts && !!dataObj.user){
+                htmlText =  '<div class="container" id="message">' +
+                          '     <p>' + dataObj.texts + '</p>' +
+                          '     <span class="name-right">' + dataObj.user + '</span>' +
+                            '</div>';
+                console.log(htmlText);
+            }
+            console.log(htmlText);
+
+            mainElem.append(htmlText);
+            mainElem.find('p').each(function (i, value){
+                height += parseInt($(this).height())
+            });
+            mainElem.animate({scrollTop: height});
+
+        }
+
+        function sendMessage() {
+            var message = $('#chat-text');
+            socket.send(message.val());
+            message.val('').focus();
+        }
+
+        socket.onopen = function (){
+            showMessage('Connection to server');
+        }
+
+        $('#submit').click(function (){
+            sendMessage()
+        })
+
+        $('#chat-text').keyup(function (e) {
+            if (e.keyCode == 13){
+                sendMessage()
+            }
+        })
+
+        socket.onmessage = function (event) {
+            showMessage(event.data)
+        };
+
+        socket.onclose = function (event) {
+            if (event.wasClean) {
+                showMessage('Clean connection end');
+            }
+            else {
+                showMessage('Connection broken');
+            }
+        };
+
+        socket.onerror = function (error) {
+            showMessage(error);
+        };
+
+
     </script>
 
 </body>

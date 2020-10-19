@@ -9,6 +9,7 @@ body {
 
 .chat {
     background-color: darkgrey;
+    overflow: scroll;
     width: 700px;
     height: 200px;
     border: darkcyan solid 2px;

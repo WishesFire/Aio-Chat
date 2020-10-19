@@ -7,7 +7,7 @@ class User:
     async def get_user(db: AsyncIOMotorDatabase, data):
         user = await db.Usercollection.find_one({'username': data})
         if user:
-            return True
+            return user['username']
         else:
             return False
 
@@ -25,6 +25,6 @@ class Message:
         return True
 
     @staticmethod
-    async def get_all_message(db: AsyncIOMotorDatabase):
-        cursor = db.Aiocollection.find().to_list()
-        return cursor
+    async def get_all_message_users(db: AsyncIOMotorDatabase):
+        cursor = db.Aiocollection.find().to_list(length=None)
+        return await cursor

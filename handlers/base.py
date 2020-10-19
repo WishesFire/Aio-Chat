@@ -18,7 +18,7 @@ class Chat(web.View):
             user = create_username()
             await User.create_user(db=db, data=user)
             session['user'] = user
-        messages = await Message.get_all_message(db=db)
+        messages = await Message.get_all_message_users(db=db)
 
         return {'user': user, 'messages': messages}
 
@@ -42,7 +42,10 @@ class WebSocket(web.View):
         session = await get_session(self.request)
         db = self.request.app['db']
         user_name = await User.get_user(db=db, data=session.get('user'))
-        self.request.app['websockets'][user_name] = ws
+        if user_name:
+            self.request.app['websockets'][user_name] = ws
+        else:
+            return web.HTTPForbidden()
 
         async for msg in ws:
             if msg.type == WSMsgType.TEXT:
@@ -52,7 +55,7 @@ class WebSocket(web.View):
                     db = self.request.app['db']
                     status = await Message.save_message(db=db, user=user_name, message=str(msg.data.strip()))
                     if status:
-                        await ws.send_json({'text': msg.data, 'user': user_name})
+                        await ws.send_json({'texts': msg.data, 'user': user_name})
             elif msg.type == WSMsgType.ERROR:
                 print('ws connection closed with exception %s' % ws.exception())
                 break
