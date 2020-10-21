@@ -45,9 +45,12 @@ class WebSocket(web.View):
         if user_name:
             self.request.app['websockets'][user_name] = ws
         else:
+            print('Error')
             return web.HTTPForbidden()
 
         async for msg in ws:
+            print('ТУТА!')
+            print(msg.data)
             if msg.type == WSMsgType.TEXT:
                 if msg.data == 'close':
                     await ws.close()
@@ -55,7 +58,10 @@ class WebSocket(web.View):
                     db = self.request.app['db']
                     status = await Message.save_message(db=db, user=user_name, message=str(msg.data.strip()))
                     if status:
-                        await ws.send_json({'texts': msg.data, 'user': user_name})
+                        for wss in self.request.app['websockets'].values():
+                            print('КУ')
+                            await wss.send_json({'text': msg.data, 'user': user_name})
+
             elif msg.type == WSMsgType.ERROR:
                 print('ws connection closed with exception %s' % ws.exception())
                 break

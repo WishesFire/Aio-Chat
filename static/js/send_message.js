@@ -1,24 +1,63 @@
-var messagecontainer = document.getElementById('message');
-var interval = null;
-var sendForm = document.getElementById('chat-form');
-var messageInput = document.getElementById('chat-text');
+var block = document.getElementById("mess_form");
+block.scrollTop = block.scrollHeight;
 
-// Create Connection
-const socket = new WebSocket('ws://localhost:8000');
-
-// Connection Opened
-socket.addEventListener('open', function (event) {
-    console.log('Connect Ws Server')
-});
-
-socket.addEventListener('close', function (event) {
-    console.log('Close connect Ws Server')
-});
-
-socket.addEventListener('message', function (event) {
-    console.log('Message from server ', event.data)
-});
-
-const sendMsg = () => {
-    socket.send('Hello from My')
+try{
+    var socket = new WebSocket('ws://' + window.location.host + '/ws');
 }
+catch(err){
+    var socket = new WebSocket('wss://' + window.location.host + '/ws');
+}
+
+
+var  msg_template = `
+        <div class="container" id="message">
+           <p>{text}</p>
+           <span class="name-right">{user}</span>
+        </div>`,
+    $chatArea = $('#chat'), $messagesContainer = $('#mess_form');
+
+
+function showMessage(message) {
+    console.log(message);
+    var data = jQuery.parseJSON(message.data);
+    if (data.user) {
+        var msg = msg_template
+            .replace('{user}', data.user)
+            .replace('{text}', data.text)
+
+    }
+    $messagesContainer.append(msg);
+    $chatArea.scrollTop($messagesContainer.height());
+}
+
+$(document).ready(function(){
+    $chatArea.scrollTop($messagesContainer.height());
+
+    $('#chat-form').on('submit', function (event) {
+        event.preventDefault();
+        var $message = $(event.target).find('textarea[name="chat-text"]');
+        socket.send($message.val());
+        $message.val('').focus();
+    });
+
+    socket.onopen = function (event) {
+        console.log(event);
+        console.log('Connection to server started');
+    };
+
+    socket.onclose = function (event) {
+        console.log(event);
+        if(event.wasClean){
+            console.log('Clean connection end');
+        } else {
+            console.log('Connection broken');
+        }
+        window.location.assign('/');
+    };
+
+    socket.onerror = function (error) {
+        console.log(error);
+    };
+
+    socket.onmessage = showMessage;
+});
