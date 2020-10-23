@@ -8,7 +8,6 @@ catch(err){
     var socket = new WebSocket('wss://' + window.location.host + '/ws');
 }
 
-
 var  msg_template = `
         <div class="container" id="message">
            <p>{text}</p>
@@ -27,12 +26,10 @@ function showMessage(message) {
 
     }
     $messagesContainer.append(msg);
-    $chatArea.scrollTop($messagesContainer.height());
+    block.scrollTop = document.getElementById('mess_form').scrollHeight;
 }
 
 $(document).ready(function(){
-    $chatArea.scrollTop($messagesContainer.height());
-
     $('#chat-form').on('submit', function (event) {
         event.preventDefault();
         var $message = $(event.target).find('textarea[name="chat-text"]');

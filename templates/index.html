@@ -8,8 +8,8 @@
 </head>
 <body>
 
-    <h2>Anonymous chat</h2>
-    <p>Your nick is {{ user }}}</p>
+    <h1>Anonymous chat</h1>
+    <div class="username">Your nick: {{ user }}}</div>
 
     <div class="chat">
 
@@ -27,14 +27,15 @@
 
         <div class="chat-input">
             <form action="/" method="post" onsubmit="return false" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" id="chat-form">
-                <textarea rows="5" id="chat-text" name="chat-text" type="text" value="" placeholder="Введите сообщение"></textarea>
+                <textarea maxlength="400" rows="5" id="chat-text" name="chat-text" type="text" value="" placeholder="Введите сообщение"></textarea>
                 <input id="submit" type="submit" class="form-submit" value="Send :)"/>
+                <button id="btn-clear" class="form-submit">Очистить поле</button>
             </form>
         </div>
-
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script type="text/javascript" src="../static/js/send_message.js"></script>
+    <script type="text/javascript" src="../static/js/clear_button.js"></script>
 </body>
 </html>

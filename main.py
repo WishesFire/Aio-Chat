@@ -5,10 +5,11 @@ import os
 import aiohttp_jinja2
 from jinja2 import FileSystemLoader
 from cryptography import fernet
-from handlers.base import Chat, WebSocket
+from handlers.base import Chat, WebSocket, Rules
 from aiohttp_session import setup
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from motor.motor_asyncio import AsyncIOMotorClient
+import ssl
 
 BASE_DIR = f'{os.path.dirname(os.path.dirname(__file__))}/aiochat/templates'
 MONGO_HOST = '*'
@@ -29,9 +30,13 @@ def main():
 
     app.router.add_route('GET', '/', Chat, name='root')
     app.router.add_route('GET', '/ws', WebSocket, name='sockets')
+    app.router.add_route('GET', '/rules', Rules, name='rules')
     app.router.add_static('/static', 'static', name='static')
 
     logging.basicConfig(level=logging.DEBUG)
+    #sll_certificate = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    #sll_certificate.load_cert_chain('domain_srv.crt', 'domain_srv.key')
+
     web.run_app(app)
 
 

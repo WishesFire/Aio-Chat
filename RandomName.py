@@ -1,7 +1,7 @@
 import string
 import random
 
-async def create_username():
+def create_username():
     alphabet = string.ascii_lowercase + '123456789!@#$*'
     nicks = ''.join([random.choice(random.choice(alphabet)) for _ in range(random.randint(8, 14))])
     finally_nick = ''

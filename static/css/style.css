@@ -9,33 +9,84 @@ body {
 
 .chat {
     background-color: darkgrey;
-    width: 800px;
-    height: 300px;
+    width: 1000px;
+    height: 600px;
     border: darkcyan solid 2px;
     border-radius: 4px;
 }
 
 .messages-form {
-    overflow: scroll;
+    overflow: auto;
     border: firebrick solid 2px;
-    width: 400px;
-    height: 200px;
+    width: 1000px;
+    height: 420px;
 }
 
-h2 {
-    color: #0d3967;
-    text-shadow: #cad5e2 1px 1px 0, #cad5e2 2px 2px 0,
-                 #cad5e2 3px 3px 0, #cad5e2 4px 4px 0,
-                 #cad5e2 5px 5px 0;
+.username {
+    font-family: Fredoka One;
+    font-style: normal;
+    font-size: 36px;
+    transform: translateY(-50%);
+    color: green;
+}
 
+h1 {
+    cursor: pointer;
+    text-shadow:
+        1px 1px 0 hsl(200,100%,35%),
+        2px 2px 0 hsl(200,100%,55%),
+        3px 3px 0 hsl(200,100%,60%),
+        4px 4px 0 hsl(200,100%,65%),
+        5px 5px 0 hsl(200,100%,70%),
+        6px 6px 0 hsl(200,100%,75%),
+        7px 7px 0 hsl(200,100%,80%),
+        8px 8px 0 hsl(200,100%,85%);
+    color: transparent;
+    transition: all 1s;
     font-family: Fredoka One;
     font-style: normal;
     font-size: 40px;
-
 }
 
-p {
-    color: green;
+h1:hover {
+    text-shadow: -8px 8px 0 hsl(290,100%,40%),
+             -7px 7px 0 hsl(290,100%,40%),
+             -6px 6px 0 hsl(280,100%,60%),
+             -5px 5px 0 hsl(280,100%,60%),
+             -4px 4px 0 hsl(270,100%,75%),
+             -3px 3px 0 hsl(270,100%,80%),
+             -2px 2px 0 hsl(260,100%,85%),
+             -1px 1px 0 hsl(260,100%,90%);
+
+  color: hsl(300,100%,30%);
+}
+
+.form-submit {
+    border-radius: 3px;
+    background: linear-gradient(#6e7078, #515156, #6e7078);
+    color: #d1d1d9;
+    text-decoration: none;
+    text-shadow: 0 -1px 2px #cccccc;
+    padding: .5em 1em;
+    outline: none;
+    box-shadow:
+       0 1px #ffffff inset,
+       0 3px 5px #808083,
+       0 0 1px 1px #cccccd;
+      transition: .2s ease-in-out;
+}
+
+.form-submit:hover:not(:active) {
+    background: linear-gradient(#7e7e86, #46474c, #7e7e86);
+}
+
+.form-submit:active {
+    background: linear-gradient(#4c4d52, #38383e, #7e7e86);
+    box-shadow:
+       0 0 1px #808080 inset,
+       0 2px 3px #808080 inset,
+       0 1px 1px #ffffff;
+
 }
 
 .container {
@@ -55,4 +106,23 @@ p {
 .name-right {
     float: right;
     color: #aaa;
+}
+
+.b-popup{
+    width: 100%;
+    min-height: 100%;
+    background-color: #6e7078;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+}
+
+.b-popup .b-popup-content{
+    margin: 40px auto 0 auto;
+    width: 100px;
+    height: 40px;
+    padding: 10px;
+    background-color: #c5c5c5;
+    border-radius: 5px;
+    box-shadow: 0 0 10px #000;
 }

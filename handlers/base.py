@@ -22,16 +22,11 @@ class Chat(web.View):
 
         return {'user': user, 'messages': messages}
 
-    #async def post(self):
-        #print('dgadgfadg')
-        #data = await self.request.post()
-        #session = await get_session(self.request)
-        #if 'user' in session and data['chat-text']:
-            #send_mess = data['chat-text']
-            #session['send_message'] = {'send': send_mess}
-            #return dict(session['send_message'])
-        #else:
-            #return web.HTTPForbidden()
+
+class Rules(web.View):
+    @aiohttp_jinja2.template('rules.html')
+    async def get(self):
+        pass
 
 
 class WebSocket(web.View):
@@ -49,17 +44,16 @@ class WebSocket(web.View):
             return web.HTTPForbidden()
 
         async for msg in ws:
-            print('ТУТА!')
-            print(msg.data)
             if msg.type == WSMsgType.TEXT:
                 if msg.data == 'close':
                     await ws.close()
+                elif len(str(msg.data)) > 400 or str(msg.data) == ('' or ' '):
+                    continue
                 else:
                     db = self.request.app['db']
                     status = await Message.save_message(db=db, user=user_name, message=str(msg.data.strip()))
                     if status:
                         for wss in self.request.app['websockets'].values():
-                            print('КУ')
                             await wss.send_json({'text': msg.data, 'user': user_name})
 
             elif msg.type == WSMsgType.ERROR:
