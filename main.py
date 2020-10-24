@@ -28,7 +28,7 @@ def main():
     aiohttp_jinja2.setup(app, loader=FileSystemLoader(BASE_DIR))
     setup(app, EncryptedCookieStorage(secret_key))
 
-    app.router.add_route('GET', '/', Chat, name='root')
+    app.router.add_route('GET', '/', Chat, name='main')
     app.router.add_route('GET', '/ws', WebSocket, name='sockets')
     app.router.add_route('GET', '/rules', Rules, name='rules')
     app.router.add_static('/static', 'static', name='static')

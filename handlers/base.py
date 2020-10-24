@@ -1,8 +1,13 @@
-from aiohttp import web, WSMsgType
+from aiohttp import web, WSMsgType, ClientSession
 from aiohttp_session import get_session
 from RandomName import create_username
 from models.database import User, Message
 import aiohttp_jinja2
+
+text_for_rules_ru = "Приветствую в аннонимном чате, чуствуй себя в безопасности " \
+                         "1. Чат не несет ответственность за контент который в нем есть"
+text_for_rules_en = " Greetings to the anonymous chat, feel safe" \
+                    " 1. Chat is not responsible for the content it contains."
 
 
 class Chat(web.View):
@@ -26,7 +31,16 @@ class Chat(web.View):
 class Rules(web.View):
     @aiohttp_jinja2.template('rules.html')
     async def get(self):
-        pass
+        session = await get_session(self.request)
+        if 'flag-icon' not in session:
+            session['flag-icon'] = 0
+
+        if session['flag-icon'] == 0:
+            session['flag-icon'] = 1
+            return {'text': text_for_rules_ru, 'icon': '../static/img/american.png'}
+        elif session['flag-icon'] == 1:
+            session['flag-icon'] = 0
+            return {'text': text_for_rules_en, 'icon': '../static/img/russian.png'}
 
 
 class WebSocket(web.View):

@@ -7,6 +7,10 @@ body {
     padding: 0 20px;
 }
 
+a {
+   text-decoration: none;
+}
+
 .chat {
     background-color: darkgrey;
     width: 1000px;
@@ -125,4 +129,18 @@ h1:hover {
     background-color: #c5c5c5;
     border-radius: 5px;
     box-shadow: 0 0 10px #000;
+}
+
+.button-flag-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.rules-text {
+    font-size: 25px;
+}
+
+.link-rules {
+    font-size: 40px;
+    color: brown;
 }

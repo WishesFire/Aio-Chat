@@ -10,6 +10,9 @@
 
     <h1>Anonymous chat</h1>
     <div class="username">Your nick: {{ user }}}</div>
+    <div class="link-rules">
+        <a href="{{ app.router['rules'].url_for() }}">Правила</a>
+    </div>
 
     <div class="chat">
 

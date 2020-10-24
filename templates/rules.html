@@ -2,9 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Anonymous chat - Rules</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="../static/css/style.css">
 </head>
 <body>
-
+    <div class="header">
+        <a href="{{ app.router['main'].url_for() }}"><h1>Anonymous chat</h1></a>
+    </div>
+    <div class="container">
+        <h3>Правила и інформация о Аннонимном чате</h3>
+        <form method="get" action="{{ app.router['rules'].url_for() }}">
+            <button class="button-flag-icon"><img src={{ icon }} /></button>
+        </form>
+        <p class="rules-text">{{ text }}</p>
+    </div>
 </body>
 </html>

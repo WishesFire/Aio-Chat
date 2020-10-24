@@ -13,7 +13,7 @@ var  msg_template = `
            <p>{text}</p>
            <span class="name-right">{user}</span>
         </div>`,
-    $chatArea = $('#chat'), $messagesContainer = $('#mess_form');
+    $messagesContainer = $('#mess_form');
 
 
 function showMessage(message) {
