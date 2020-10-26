@@ -25,8 +25,18 @@ function showMessage(message) {
             .replace('{text}', data.text)
 
     }
+
+    else if (data.connection) {
+        console.log(data.connection)
+        $('#count_online').text(data.connection);
+        return;
+    }
+
     $messagesContainer.append(msg);
-    block.scrollTop = document.getElementById('mess_form').scrollHeight;
+    if ($('#prev_messages').is(':not(:checked)')){
+        block.scrollTop = document.getElementById('mess_form').scrollHeight;
+    }
+
 }
 
 $(document).ready(function(){

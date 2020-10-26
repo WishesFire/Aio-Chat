@@ -13,6 +13,10 @@
     <div class="link-rules">
         <a href="{{ app.router['rules'].url_for() }}">Правила</a>
     </div>
+    <p>Онлайн:</p>
+    <div class="online-people" id="count_online">
+        0
+    </div>
 
     <div class="chat">
 
@@ -34,6 +38,8 @@
                 <input id="submit" type="submit" class="form-submit" value="Send :)"/>
                 <button id="btn-clear" class="form-submit">Очистить поле</button>
             </form>
+            <input type="checkbox" id="prev_messages">
+            <label for="prev_messages">Check previous messages</label>
         </div>
     </div>
 

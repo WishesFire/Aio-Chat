@@ -1,7 +1,8 @@
-from aiohttp import web, WSMsgType, ClientSession
+from aiohttp import web, WSMsgType
 from aiohttp_session import get_session
 from RandomName import create_username
 from models.database import User, Message
+from handlers.commands import time_now
 import aiohttp_jinja2
 
 text_for_rules_ru = "Приветствую в аннонимном чате, чуствуй себя в безопасности " \
@@ -43,6 +44,10 @@ class Rules(web.View):
             return {'text': text_for_rules_en, 'icon': '../static/img/russian.png'}
 
 
+class CreateRoom(web.View):
+    pass
+
+
 class WebSocket(web.View):
     async def get(self):
         ws = web.WebSocketResponse()
@@ -52,7 +57,10 @@ class WebSocket(web.View):
         db = self.request.app['db']
         user_name = await User.get_user(db=db, data=session.get('user'))
         if user_name:
+            count_connection = len(self.request.app['websockets'])
             self.request.app['websockets'][user_name] = ws
+            for wss in self.request.app['websockets'].values():
+                await wss.send_json({'connection': count_connection + 1})
         else:
             print('Error')
             return web.HTTPForbidden()
@@ -64,11 +72,17 @@ class WebSocket(web.View):
                 elif len(str(msg.data)) > 400 or str(msg.data) == ('' or ' '):
                     continue
                 else:
-                    db = self.request.app['db']
-                    status = await Message.save_message(db=db, user=user_name, message=str(msg.data.strip()))
-                    if status:
-                        for wss in self.request.app['websockets'].values():
-                            await wss.send_json({'text': msg.data, 'user': user_name})
+                    if msg.data.strip().startswith('/'):
+                        command_text = await self.commands(msg.data.strip())
+                        if command_text is not None:
+                            for wss in self.request.app['websockets'].values():
+                                await wss.send_json({'text': command_text, 'user': user_name})
+                    else:
+                        db = self.request.app['db']
+                        status = await Message.save_message(db=db, user=user_name, message=str(msg.data.strip()))
+                        if status:
+                            for wss in self.request.app['websockets'].values():
+                                await wss.send_json({'text': msg.data, 'user': user_name})
 
             elif msg.type == WSMsgType.ERROR:
                 print('ws connection closed with exception %s' % ws.exception())
@@ -76,3 +90,9 @@ class WebSocket(web.View):
 
         del self.request.app['websockets'][user_name]
         return ws
+
+    async def commands(self, text):
+        if text == '/time':
+            return await time_now()
+        else:
+            return None

@@ -28,3 +28,7 @@ class Message:
     async def get_all_message_users(db: AsyncIOMotorDatabase):
         cursor = db.Aiocollection.find().to_list(length=None)
         return await cursor
+
+    @staticmethod
+    async def delete_all_messages(db: AsyncIOMotorDatabase):
+        await db.Aiocollection.delete_many({})

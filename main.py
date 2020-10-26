@@ -1,19 +1,17 @@
 from aiohttp import web
 import base64
 import logging
-import os
 import aiohttp_jinja2
 from jinja2 import FileSystemLoader
 from cryptography import fernet
-from handlers.base import Chat, WebSocket, Rules
+from handlers.base import Chat, WebSocket, Rules, CreateRoom
 from aiohttp_session import setup
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from motor.motor_asyncio import AsyncIOMotorClient
+from clear_chat import clear_chat
+from config import SECRET_KEY_RECAPTCHA, SECRET_SITE_RECAPTCHA, BASE_DIR, MONGO_HOST, SECRET_KEY
 import ssl
 
-BASE_DIR = f'{os.path.dirname(os.path.dirname(__file__))}/aiochat/templates'
-MONGO_HOST = '*'
-SECRET_KEY = '68028350928350928502899'
 
 def main():
     app = web.Application()
@@ -21,6 +19,8 @@ def main():
     app['config'] = SECRET_KEY
     client = AsyncIOMotorClient(MONGO_HOST)
     app['db'] = client['AioDB']
+    app.on_startup.append(start_back_tasks)
+    app.on_shutdown.append(stop_back_tasks)
     app.on_shutdown.append(shutdown)
 
     fernet_key = fernet.Fernet.generate_key()
@@ -31,6 +31,7 @@ def main():
     app.router.add_route('GET', '/', Chat, name='main')
     app.router.add_route('GET', '/ws', WebSocket, name='sockets')
     app.router.add_route('GET', '/rules', Rules, name='rules')
+    app.router.add_route('*', '/rooms', CreateRoom, name='create-rooms')
     app.router.add_static('/static', 'static', name='static')
 
     logging.basicConfig(level=logging.DEBUG)
@@ -38,6 +39,15 @@ def main():
     #sll_certificate.load_cert_chain('domain_srv.crt', 'domain_srv.key')
 
     web.run_app(app)
+
+
+async def start_back_tasks(app):
+    app['clear_day'] = app.loop.create_task(clear_chat(app['db']))
+
+
+async def stop_back_tasks(app):
+    app['clear_day'].cancel()
+    await app['clear_day']
 
 
 async def shutdown(app):
