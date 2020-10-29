@@ -32,6 +32,28 @@ function showMessage(message) {
         return;
     }
 
+    else if (data.disconnect) {
+        console.log(data.disconnect)
+        $('#count_online').text(data.disconnect);
+        return;
+    }
+
+    else if (data.not_command) {
+        console.log(data.not_command)
+        $('#myOverlay').fadeIn(297, function (){
+            $('#modalWindow').css('display', 'block').animate({opacity: 1}, 198);
+        });
+
+        $('#modalWindow_close, #myOverlay').click(function (){
+            $('#modalWindow').animate({opacity: 0}, 198, function (){
+                $(this).css('display', 'none');
+                $('#myOverlay').fadeOut(297);
+            })
+
+        })
+        return;
+    }
+
     $messagesContainer.append(msg);
     if ($('#prev_messages').is(':not(:checked)')){
         block.scrollTop = document.getElementById('mess_form').scrollHeight;

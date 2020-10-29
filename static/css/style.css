@@ -31,6 +31,7 @@ a {
     font-style: normal;
     font-size: 36px;
     transform: translateY(-50%);
+    margin-top: 20px;
     color: green;
 }
 
@@ -145,7 +146,82 @@ h1:hover {
     color: brown;
 }
 
+.headline-online{
+    font-size: 30px;
+    color: purple;
+}
+
 .online-people {
     color: purple;
     font-size: 30px;
+    position: relative;
+    bottom: 67px;
+    left: 120px;
+}
+
+#modalWindow {
+    width: 500px;
+    height: 500px;
+    margin: 0 auto;
+    padding: 18px 9px;
+    border-radius: 4px;
+    background: url("../img/command_window.jpg") no-repeat;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: none;
+    opacity: 0;
+    z-index: 38;
+    text-align: center;
+}
+
+#modalWindow #modalWindow_close {
+    width: 21px;
+    height: 21px;
+    position: absolute;
+    top: 1px;
+    right: 11px;
+    cursor: pointer;
+    display: block;
+    font-size: 29px;
+    color: white;
+}
+
+#myOverlay {
+    z-index: 37;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    display: none;
+}
+
+.dropdown-menu{
+    position: relative;
+    left: 1100px;
+}
+
+.style-button{
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    margin: 4px 2px;
+}
+
+.dropdown-style-text {
+    background-color: darkgrey;
+    margin-left:30px;
+    margin-top: 30px;
+    display: none;
+}
+
+.create-rooms {
+    font-size: 40px;
+    position: relative;
+    left: 180px;
+    bottom: 60px;
 }

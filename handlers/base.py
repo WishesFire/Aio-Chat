@@ -1,8 +1,8 @@
 from aiohttp import web, WSMsgType
 from aiohttp_session import get_session
 from RandomName import create_username
-from models.database import User, Message
-from handlers.commands import time_now
+from models.database import User, Message, Rooms
+from handlers.commands import time_now, curs_now
 import aiohttp_jinja2
 
 text_for_rules_ru = "Приветствую в аннонимном чате, чуствуй себя в безопасности " \
@@ -45,7 +45,13 @@ class Rules(web.View):
 
 
 class CreateRoom(web.View):
-    pass
+    @aiohttp_jinja2.template('rooms.html')
+    async def get(self):
+        session = await get_session(self.request)
+        db = self.request.app['db']
+        names_of_rooms = await Rooms.get_user_room(db=db, username=session.get('user'))
+        if names_of_rooms is None:
+            return {'rooms': 0}
 
 
 class WebSocket(web.View):
@@ -66,10 +72,12 @@ class WebSocket(web.View):
             return web.HTTPForbidden()
 
         async for msg in ws:
+            print(msg.data)
             if msg.type == WSMsgType.TEXT:
                 if msg.data == 'close':
                     await ws.close()
-                elif len(str(msg.data)) > 400 or str(msg.data) == ('' or ' '):
+                elif len(str(msg.data)) > 400 or str(msg.data) == '' or str(msg.data) == ' ':
+                    print('АЛО')
                     continue
                 else:
                     if msg.data.strip().startswith('/'):
@@ -77,6 +85,8 @@ class WebSocket(web.View):
                         if command_text is not None:
                             for wss in self.request.app['websockets'].values():
                                 await wss.send_json({'text': command_text, 'user': user_name})
+                        else:
+                            await self.request.app['websockets'][user_name].send_json({'not_command': 'Not command'})
                     else:
                         db = self.request.app['db']
                         status = await Message.save_message(db=db, user=user_name, message=str(msg.data.strip()))
@@ -89,10 +99,15 @@ class WebSocket(web.View):
                 break
 
         del self.request.app['websockets'][user_name]
+        count_connection = len(self.request.app['websockets'])
+        for wss in self.request.app['websockets'].values():
+            await wss.send_json({'disconnect': count_connection})
         return ws
 
     async def commands(self, text):
         if text == '/time':
             return await time_now()
+        elif text == '/kurs':
+            return await curs_now()
         else:
             return None

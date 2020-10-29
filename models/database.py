@@ -32,3 +32,10 @@ class Message:
     @staticmethod
     async def delete_all_messages(db: AsyncIOMotorDatabase):
         await db.Aiocollection.delete_many({})
+
+
+class Rooms:
+
+    @staticmethod
+    async def get_user_room(db: AsyncIOMotorDatabase, username):
+        pass

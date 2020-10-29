@@ -1,24 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="../static/css/style.css">
-    <title>Anonymous chat</title>
-</head>
-<body>
+{% extends 'base.html' %}
+<title>{% block title %}Anonymous chat{% endblock %}</title>
 
-    <h1>Anonymous chat</h1>
-    <div class="username">Your nick: {{ user }}}</div>
+{% block content %}
     <div class="link-rules">
         <a href="{{ app.router['rules'].url_for() }}">Правила</a>
     </div>
-    <p>Онлайн:</p>
+    <div class="create-rooms">
+        <a href="{{ app.router['rooms'].url_for() }}">Комнати</a>
+    </div>
+    <div class="username">Your nick: {{ user }}}</div>
+    <p class="headline-online">Онлайн:</p>
     <div class="online-people" id="count_online">
         0
     </div>
 
+    <div class="dropdown-menu">
+        <div class="dropdown-button">
+            <button class="style-button" id="dropdown-button"></button>
+        </div>
+
+        <div class="dropdown-style-text" id="dropdown-text">Сейчас доступни команды:<br>
+                                1. /time - (Показывает точно время)<br>
+                                2. /kurs (валюта) - (Показывает курс для вашей валюты)<br>
+        </div>
+    </div>
+
     <div class="chat">
+
+        <div id="modalWindow">
+            <p>Такой команды нету(</p>
+            <span id="modalWindow_close" class="close">ₓ</span>
+        </div>
+        <div id="myOverlay"></div>
 
         <div class="messages-form" id="mess_form">
 
@@ -35,6 +48,7 @@
         <div class="chat-input">
             <form action="/" method="post" onsubmit="return false" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" id="chat-form">
                 <textarea maxlength="400" rows="5" id="chat-text" name="chat-text" type="text" value="" placeholder="Введите сообщение"></textarea>
+                <input id="avatar" type="file" class="form-submit" value="Picture" />
                 <input id="submit" type="submit" class="form-submit" value="Send :)"/>
                 <button id="btn-clear" class="form-submit">Очистить поле</button>
             </form>
@@ -43,8 +57,9 @@
         </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{% endblock %}
+{% block js_script %}
     <script type="text/javascript" src="../static/js/send_message.js"></script>
     <script type="text/javascript" src="../static/js/clear_button.js"></script>
-</body>
-</html>
+    <script type="text/javascript" src="../static/js/drop_down_menu.js"></script>
+{% endblock %}

@@ -31,7 +31,7 @@ def main():
     app.router.add_route('GET', '/', Chat, name='main')
     app.router.add_route('GET', '/ws', WebSocket, name='sockets')
     app.router.add_route('GET', '/rules', Rules, name='rules')
-    app.router.add_route('*', '/rooms', CreateRoom, name='create-rooms')
+    app.router.add_route('*', '/rooms', CreateRoom, name='rooms')
     app.router.add_static('/static', 'static', name='static')
 
     logging.basicConfig(level=logging.DEBUG)
