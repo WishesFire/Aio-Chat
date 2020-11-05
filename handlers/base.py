@@ -1,9 +1,12 @@
 from aiohttp import web, WSMsgType
 from aiohttp_session import get_session
-from RandomName import create_username
+from RandomName import create_username, create_file_name
 from models.database import User, Message, Rooms
 from handlers.commands import time_now, curs_now
+from config import BASE_STATIC_DIR
 import aiohttp_jinja2
+import base64
+import os
 
 text_for_rules_ru = "Приветствую в аннонимном чате, чуствуй себя в безопасности " \
                          "1. Чат не несет ответственность за контент который в нем есть"
@@ -44,14 +47,41 @@ class Rules(web.View):
             return {'text': text_for_rules_en, 'icon': '../static/img/russian.png'}
 
 
+class Messages(web.View):
+    pass
+
+
 class CreateRoom(web.View):
     @aiohttp_jinja2.template('rooms.html')
     async def get(self):
         session = await get_session(self.request)
         db = self.request.app['db']
-        names_of_rooms = await Rooms.get_user_room(db=db, username=session.get('user'))
+        user = session['user']
+        names_of_rooms = await Rooms.get_user_room(db=db, username=user)
         if names_of_rooms is None:
-            return {'rooms': 0}
+            return {'user': user, 'rooms': ''}
+        else:
+            return {'user': user, 'rooms': names_of_rooms['rooms']}
+
+    async def post(self):
+        data = await self.request.post()
+        session = await get_session(self.request)
+        db = self.request.app['db']
+        user = session['user']
+        print(data)
+        print(data['name-room'])
+        if data['name-room'] and data['password']:
+            room_name = data['name-room']
+            room_password = data['password']
+            status = await Rooms.save_room(db=db, username=user, room_name=room_name, password=room_password)
+            if status:
+                url = self.request.app.router['rooms'].url_for()
+                return web.HTTPFound(location=url)
+            else:
+                return web.HTTPForbidden()
+        elif data['text']:
+            room_name = data['text']
+            await Rooms.delete_room(db=db, username=user, room_name=room_name)
 
 
 class WebSocket(web.View):
@@ -72,16 +102,39 @@ class WebSocket(web.View):
             return web.HTTPForbidden()
 
         async for msg in ws:
-            print(msg.data)
             if msg.type == WSMsgType.TEXT:
-                if msg.data == 'close':
+                data = msg.data
+                if data == 'close':
                     await ws.close()
-                elif len(str(msg.data)) > 400 or str(msg.data) == '' or str(msg.data) == ' ':
-                    print('АЛО')
+                elif len(str(data)) > 1000 and 'data:image' in str(data):
+                    index_photo_name = data.find("data:image")
+                    index_base_photo_content = data.find("base64,")
+                    if index_photo_name == -1 or index_base_photo_content == -1:
+                        continue
+
+                    photo_names = data[:index_photo_name][:-1]
+                    enlargement = len(str(photo_names))
+
+                    photo_name = create_file_name() + photo_names[enlargement-4:]
+                    base_photo_content = data[index_base_photo_content + 7:]
+                    photo_name_url = os.path.join(BASE_STATIC_DIR + '\\photos\\' + photo_name)
+                    send_name_url = f'static/photos/{photo_name}'
+
+                    file = base64.b64decode(base_photo_content)
+
+                    with open(photo_name_url, 'wb') as f:
+                        f.write(file)
+
+                    status = await Message.save_message(db=db, user=user_name, image=send_name_url)
+                    if status:
+                        for wss in self.request.app['websockets'].values():
+                            await wss.send_json({'image': send_name_url, 'user': user_name})
+
+                elif len(str(data)) > 400 or len(str(data)) == 0 or str(data) == '' or str(data) == ' ':
                     continue
                 else:
-                    if msg.data.strip().startswith('/'):
-                        command_text = await self.commands(msg.data.strip())
+                    if data.strip().startswith('/'):
+                        command_text = await self.commands(data.strip())
                         if command_text is not None:
                             for wss in self.request.app['websockets'].values():
                                 await wss.send_json({'text': command_text, 'user': user_name})
@@ -89,10 +142,10 @@ class WebSocket(web.View):
                             await self.request.app['websockets'][user_name].send_json({'not_command': 'Not command'})
                     else:
                         db = self.request.app['db']
-                        status = await Message.save_message(db=db, user=user_name, message=str(msg.data.strip()))
+                        status = await Message.save_message(db=db, user=user_name, message=str(data.strip()))
                         if status:
                             for wss in self.request.app['websockets'].values():
-                                await wss.send_json({'text': msg.data, 'user': user_name})
+                                await wss.send_json({'text': data, 'user': user_name})
 
             elif msg.type == WSMsgType.ERROR:
                 print('ws connection closed with exception %s' % ws.exception())

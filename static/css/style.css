@@ -225,3 +225,72 @@ h1:hover {
     left: 180px;
     bottom: 60px;
 }
+
+.myModal {
+    width: 600px; height: 600px;
+    margin: 0 auto;
+    padding: 18px 9px;
+	border-radius: 4px;
+	background: #fafafa;
+	position: fixed;
+	top: 0;	left: 0; right: 0; bottom: 0;
+	display: none;
+	opacity: 0;
+	z-index: 38;
+    text-align: center;
+}
+
+.myModal .myModal__close {
+    width: 21px;
+    height: 21px;
+    position: absolute;
+    top: 1px;
+    right: 11px;
+    cursor: pointer;
+    display: block;
+    font-size: 29px;
+}
+
+.my_overlay {
+    z-index: 37;
+	position: fixed;
+	background-color: rgba(0,0,0,.7);
+	width: 100%; height: 100%;
+	top: 0; left: 0;
+	cursor :pointer;
+	display :none;
+}
+
+.register-room {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    opacity: 0.9;
+}
+
+.size-photo {
+    width: 300px;
+    height: 300px;
+}
+
+.red-button {
+    color: green;
+    font-size: 40px;
+}
+
+.room-text {
+    color: white;
+}
+
+.random-color-div {
+    font-size: 35px;
+}
+
+.delete-red-button {
+    color: red;
+    font-size: 35px;
+}

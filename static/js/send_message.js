@@ -8,9 +8,16 @@ catch(err){
     var socket = new WebSocket('wss://' + window.location.host + '/ws');
 }
 
+socket.binaryType = 'arraybuffer';
+
 var  msg_template = `
         <div class="container" id="message">
            <p>{text}</p>
+           <span class="name-right">{user}</span>
+        </div>`,
+    msg_photo_template = `
+        <div class="container" id="message">
+           <img class="size-photo" src="{text}" />
            <span class="name-right">{user}</span>
         </div>`,
     $messagesContainer = $('#mess_form');
@@ -19,11 +26,16 @@ var  msg_template = `
 function showMessage(message) {
     console.log(message);
     var data = jQuery.parseJSON(message.data);
-    if (data.user) {
+    if (data.user && data.text) {
         var msg = msg_template
             .replace('{user}', data.user)
             .replace('{text}', data.text)
 
+    }
+    else if (data.image) {
+        var msg = msg_photo_template
+            .replace('{user}', data.user)
+            .replace('{text}', data.image)
     }
 
     else if (data.connection) {
@@ -65,9 +77,29 @@ $(document).ready(function(){
     $('#chat-form').on('submit', function (event) {
         event.preventDefault();
         var $message = $(event.target).find('textarea[name="chat-text"]');
-        socket.send($message.val());
-        $message.val('').focus();
+        var data = document.querySelector('input[name="chat-picture"]').files[0];
+
+        if ($message === '') {
+            createPhotoFile(data)
+        }
+        else if (data === undefined){
+            socket.send($message.val());
+            $message.val('').focus();
+        }
+        else if ($message !== '' && data !== '') {
+            createPhotoFile(data)
+        }
     });
+
+    function createPhotoFile(data){
+        var reader = new FileReader();
+        reader.onload = function (evt){
+            var element = data.name + ' ' + evt.target.result
+            socket.send(element);
+        };
+        reader.readAsDataURL(data);
+
+    }
 
     socket.onopen = function (event) {
         console.log(event);

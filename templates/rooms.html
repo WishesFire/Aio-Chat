@@ -1,4 +1,45 @@
 {% extends 'base.html' %}
 <title>{% block title %}Anonymous chat - Rooms{% endblock %}</title>
 {% block content %}
+    <div class="username">Your nick: {{ user }}}</div>
+    <div id="rooms-now" class="rooms-now">
+        {% for room in rooms %}
+            <div class="room">
+                <p class="room-text">{{ room }}</p>
+                <button class="random-color-div">Войти</button>
+                <button class="delete-red-button">Удалить</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="green-create-room">
+        <button id="red-button" class="red-button"><a href="#">Создать комнату</a></button>
+    </div>
+
+    <div id="DialogWindow" title="Превышен лимит на комнаты">Вы превысили лимит на создание комнат,<br>
+                                                            максимум можно создать 5, если хотите <br>
+                                                            создать новую тогда удалити старую)</div>
+
+    <div class="myModal" id="myModal">
+        <form action="{{ url('rooms') }}" method="POST" accept-charset="utf-8" enctype="application/x-www-form-urlencoded">
+            <label for="name-room"><b>Room name</b></label>
+            <input type="text" placeholder="Enter name room" name="name-room" maxlength="18" required>
+
+            <label for="password"><b>Password for room</b></label>
+            <input type="password" placeholder="Enter Password" name="password" minlength="8" maxlength="18" required>
+
+            <button type="submit" class="register-room">Create room</button>
+        </form>
+        <span class="myModal__close" id="close">ₓ</span>
+    </div>
+    <div class="my_overlay" id="my_overlay"></div>
+
+{% endblock %}
+
+{% block js_script %}
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"
+                  integrity="sha256-0YPKAwZP7Mp3ALMRVB2i8GXeEndvCq3eSl/WsAl1Ryk=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="../static/js/window_form.js"></script>
+    <script type="text/javascript" src="../static/js/random_color_box.js"></script>
+    <script type="text/javascript" src="../static/js/delete_room.js"></script>
 {% endblock %}

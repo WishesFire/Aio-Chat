@@ -36,19 +36,24 @@
         <div class="messages-form" id="mess_form">
 
             {% for message in messages %}
-
-                <div class="container" id="message">
-                  <p>{{ message['message'] }}</p>
-                  <span class="name-right">{{ message['user'] }}</span>
-                </div>
-
+                {% if message['message'] %}
+                    <div class="container">
+                      <p>{{ message['message'] }}</p>
+                      <span class="name-right">{{ message['user'] }}</span>
+                    </div>
+                {% elif message['image'] %}
+                    <div class="container">
+                      <img class="size-photo" src="{{ message['image'] }}" />
+                      <span class="name-right">{{ message['user'] }}</span>
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
 
         <div class="chat-input">
             <form action="/" method="post" onsubmit="return false" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" id="chat-form">
                 <textarea maxlength="400" rows="5" id="chat-text" name="chat-text" type="text" value="" placeholder="Введите сообщение"></textarea>
-                <input id="avatar" type="file" class="form-submit" value="Picture" />
+                <input id="avatar" accept="image/*" multiple="multiple" type="file" name="chat-picture" class="form-submit" value="Picture" />
                 <input id="submit" type="submit" class="form-submit" value="Send :)"/>
                 <button id="btn-clear" class="form-submit">Очистить поле</button>
             </form>

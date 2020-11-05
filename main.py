@@ -4,7 +4,8 @@ import logging
 import aiohttp_jinja2
 from jinja2 import FileSystemLoader
 from cryptography import fernet
-from handlers.base import Chat, WebSocket, Rules, CreateRoom
+from handlers.base import Chat, WebSocket, Rules, CreateRoom, Messages
+from handlers.room_handler import ChatRoom
 from aiohttp_session import setup
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -30,8 +31,11 @@ def main():
 
     app.router.add_route('GET', '/', Chat, name='main')
     app.router.add_route('GET', '/ws', WebSocket, name='sockets')
+    app.router.add_route('GET', '/ws/{slug}', WebSocket, name='room_sockets')
     app.router.add_route('GET', '/rules', Rules, name='rules')
     app.router.add_route('*', '/rooms', CreateRoom, name='rooms')
+    app.router.add_route('GET', '/rooms/{slug}', ChatRoom, name='current_room')
+    app.router.add_route('GET', '/messages', Messages, name='messages')
     app.router.add_static('/static', 'static', name='static')
 
     logging.basicConfig(level=logging.DEBUG)

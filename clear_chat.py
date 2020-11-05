@@ -1,6 +1,8 @@
 import datetime
 import asyncio
-from models.database import Message
+from models.database import Message, User, Rooms
+from config import BASE_STATIC_DIR
+import os
 
 
 async def clear_chat(collection):
@@ -11,7 +13,16 @@ async def clear_chat(collection):
         while True:
             if current_time == clear_day:
                 await Message.delete_all_messages(collection)
+                await User.delete_all_users(collection)
+                await Rooms.delete_all_room(collection)
+                await clear_photo()
             else:
                 await asyncio.sleep(172800)
     except asyncio.CancelledError:
         print('Ошибка таска')
+
+
+async def clear_photo():
+    path = BASE_STATIC_DIR + '\\photos'
+    for file in os.listdir(path):
+        os.remove(path + f'\\{file}')
