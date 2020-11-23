@@ -294,3 +294,8 @@ h1:hover {
     color: red;
     font-size: 35px;
 }
+
+.hide_send_button {
+    position: fixed;
+    z-index: 999999;
+}

@@ -8,6 +8,10 @@
     <div class="create-rooms">
         <a href="{{ app.router['rooms'].url_for() }}">Комнати</a>
     </div>
+    <div class="get-message">
+        <a href="{{ app.router['messages'].url_for() }}">Инвайты</a>
+    </div>
+
     <div class="username">Your nick: {{ user }}}</div>
     <p class="headline-online">Онлайн:</p>
     <div class="online-people" id="count_online">
@@ -38,13 +42,22 @@
             {% for message in messages %}
                 {% if message['message'] %}
                     <div class="container">
-                      <p>{{ message['message'] }}</p>
-                      <span class="name-right">{{ message['user'] }}</span>
+                        <p>{{ message['message'] }}</p>
+                        <span class="name-right">{{ message['user'] }}</span>
+                        <button class="hide_send_button"></button>
                     </div>
                 {% elif message['image'] %}
                     <div class="container">
-                      <img class="size-photo" src="{{ message['image'] }}" />
-                      <span class="name-right">{{ message['user'] }}</span>
+                        <img class="size-photo" src="{{ message['image'] }}" />
+                        <span class="name-right">{{ message['user'] }}</span>
+                        <button class="hide_send_button"></button>
+                    </div>
+                {% elif message['audio'] %}
+                    <div class="container">
+                       <audio controls src="{{ message['audio'] }}"> Your browser does not support the
+                            <code>audio</code> element.
+                        </audio>
+                       <span class="name-right">{{ message['user'] }}</span>
                     </div>
                 {% endif %}
             {% endfor %}
@@ -53,7 +66,7 @@
         <div class="chat-input">
             <form action="/" method="post" onsubmit="return false" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" id="chat-form">
                 <textarea maxlength="400" rows="5" id="chat-text" name="chat-text" type="text" value="" placeholder="Введите сообщение"></textarea>
-                <input id="avatar" accept="image/*" multiple="multiple" type="file" name="chat-picture" class="form-submit" value="Picture" />
+                <input id="avatar" accept="image/*, audio/*" multiple="multiple" type="file" name="chat-picture" class="form-submit" value="Picture" />
                 <input id="submit" type="submit" class="form-submit" value="Send :)"/>
                 <button id="btn-clear" class="form-submit">Очистить поле</button>
             </form>

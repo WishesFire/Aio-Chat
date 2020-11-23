@@ -20,6 +20,14 @@ var  msg_template = `
            <img class="size-photo" src="{text}" />
            <span class="name-right">{user}</span>
         </div>`,
+    msg_audio_template = `
+        <div class="container" id="message">
+           <audio controls src="{text}">
+                Your browser does not support the
+                <code>audio</code> element.
+            </audio>
+           <span class="name-right">{user}</span>
+        </div>`,
     $messagesContainer = $('#mess_form');
 
 
@@ -36,6 +44,12 @@ function showMessage(message) {
         var msg = msg_photo_template
             .replace('{user}', data.user)
             .replace('{text}', data.image)
+    }
+
+    else if (data.audio) {
+        var msg = msg_audio_template
+            .replace('{user}', data.user)
+            .replace('{text}', data.audio)
     }
 
     else if (data.connection) {
@@ -92,6 +106,8 @@ $(document).ready(function(){
     });
 
     function createPhotoFile(data){
+        console.log(data.size)
+
         var reader = new FileReader();
         reader.onload = function (evt){
             var element = data.name + ' ' + evt.target.result

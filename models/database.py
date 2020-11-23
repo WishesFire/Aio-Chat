@@ -2,7 +2,9 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 
 
 class User:
-
+    """
+    A model for a user who visits the site.
+    """
     @staticmethod
     async def get_user(db: AsyncIOMotorDatabase, data):
         user = await db.Usercollection.find_one({'username': data})
@@ -22,11 +24,15 @@ class User:
 
 
 class Message:
-
+    """
+    A model for saving messages from general chat
+    """
     @staticmethod
-    async def save_message(db: AsyncIOMotorDatabase,  user, message=None, image=None):
+    async def save_message(db: AsyncIOMotorDatabase,  user, message=None, image=None, audio=None):
         if image is not None:
             await db.Aiocollection.insert_one({'user': user, 'image': image})
+        elif audio is not None:
+            await db.Aiocollection.insert_one({'user': user, 'audio': audio})
         else:
             if message is not None:
                 await db.Aiocollection.insert_one({'user': user, 'message': message})
@@ -45,7 +51,9 @@ class Message:
 
 
 class Rooms:
-
+    """
+    A model for saving, deleting rooms
+    """
     @staticmethod
     async def get_user_room(db: AsyncIOMotorDatabase, username):
         cursor = db.Roomcollection.find_one({'username': username})

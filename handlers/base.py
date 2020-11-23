@@ -48,7 +48,9 @@ class Rules(web.View):
 
 
 class Messages(web.View):
-    pass
+    @aiohttp_jinja2.template('messages.html')
+    async def get(self):
+        pass
 
 
 class CreateRoom(web.View):
@@ -107,6 +109,9 @@ class WebSocket(web.View):
                 if data == 'close':
                     await ws.close()
                 elif len(str(data)) > 1000 and 'data:image' in str(data):
+                    """
+                        IMAGE
+                    """
                     index_photo_name = data.find("data:image")
                     index_base_photo_content = data.find("base64,")
                     if index_photo_name == -1 or index_base_photo_content == -1:
@@ -118,22 +123,52 @@ class WebSocket(web.View):
                     photo_name = create_file_name() + photo_names[enlargement-4:]
                     base_photo_content = data[index_base_photo_content + 7:]
                     photo_name_url = os.path.join(BASE_STATIC_DIR + '\\photos\\' + photo_name)
-                    send_name_url = f'static/photos/{photo_name}'
+                    send_name_photo_url = f'static/photos/{photo_name}'
 
-                    file = base64.b64decode(base_photo_content)
+                    file = await self.read_file(base_photo_content)
 
                     with open(photo_name_url, 'wb') as f:
                         f.write(file)
 
-                    status = await Message.save_message(db=db, user=user_name, image=send_name_url)
+                    status = await Message.save_message(db=db, user=user_name, image=send_name_photo_url)
                     if status:
                         for wss in self.request.app['websockets'].values():
-                            await wss.send_json({'image': send_name_url, 'user': user_name})
+                            await wss.send_json({'image': send_name_photo_url, 'user': user_name})
+
+                elif len(str(data)) > 1000 and 'data:audio' in str(data):
+                    """
+                        AUDIO 
+                    """
+                    index_audio_name = data.find('data:audio')
+                    index_base_audio_content = data.find("base64,")
+                    print(index_audio_name)
+                    print(index_base_audio_content)
+                    if index_audio_name == -1 or index_base_audio_content == -1:
+                        continue
+
+                    audio_name = create_file_name() + '.mp3'
+                    base_audio_content = data[index_base_audio_content+7:]
+                    audio_name_url = os.path.join(BASE_STATIC_DIR + '\\audio\\' + audio_name)
+                    send_name_audio_url = f'static/audio/{audio_name}'
+
+                    file = await self.read_file(base_audio_content)
+
+                    with open(audio_name_url, 'wb') as f:
+                        f.write(file)
+
+                    status = await Message.save_message(db=db, user=user_name, audio=send_name_audio_url)
+                    print(send_name_audio_url)
+                    if status:
+                        for wss in self.request.app['websockets'].values():
+                            await wss.send_json({'audio': send_name_audio_url, 'user': user_name})
 
                 elif len(str(data)) > 400 or len(str(data)) == 0 or str(data) == '' or str(data) == ' ':
                     continue
                 else:
                     if data.strip().startswith('/'):
+                        """
+                            COMMAND
+                        """
                         command_text = await self.commands(data.strip())
                         if command_text is not None:
                             for wss in self.request.app['websockets'].values():
@@ -141,6 +176,9 @@ class WebSocket(web.View):
                         else:
                             await self.request.app['websockets'][user_name].send_json({'not_command': 'Not command'})
                     else:
+                        """
+                            TEXT
+                        """
                         db = self.request.app['db']
                         status = await Message.save_message(db=db, user=user_name, message=str(data.strip()))
                         if status:
@@ -164,3 +202,6 @@ class WebSocket(web.View):
             return await curs_now()
         else:
             return None
+
+    async def read_file(self, file):
+        return base64.b64decode(file)
