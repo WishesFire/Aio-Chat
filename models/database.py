@@ -63,6 +63,14 @@ class Rooms:
             return None
 
     @staticmethod
+    async def find_room(db: AsyncIOMotorDatabase, username, room_name):
+        cursor = await db.Roomcollection.find_one({'username': username})
+        if room_name in cursor['rooms']:
+            return True
+        else:
+            return False
+
+    @staticmethod
     async def save_room(db: AsyncIOMotorDatabase, username,  room_name, password):
         cursor = await db.Roomcollection.find_one({'username': username})
         if cursor == None:
@@ -74,15 +82,29 @@ class Rooms:
             return True
         else:
             if len(cursor['rooms']) < 5:
-                await db.Roomcollection.update_one({'username': username}, {'$set': {f'rooms.{room_name}': password}})
+                if room_name in cursor['rooms']:
+                    return False
+                else:
+                    await db.Roomcollection.update_one({'username': username}, {'$set': {f'rooms.{room_name}': password}})
                 return True
             else:
                 return False
 
     @staticmethod
     async def delete_room(db: AsyncIOMotorDatabase, username, room_name):
-        await db.Roomcollection.delete_one({'username': username}, {'$unset': {'rooms': room_name}})
+        p = await db.Roomcollection.find_one({'username': username})
+        password = p['rooms'][room_name]
+        await db.Roomcollection.update_one({'username': username}, {'$unset': {f'rooms.{room_name}': password}})
 
     @staticmethod
     async def delete_all_room(db: AsyncIOMotorDatabase):
         await db.Roomcollection.delete_many({})
+
+
+class MessagesRoom:
+    """
+        Messages from specific room
+    """
+    @staticmethod
+    async def get_messages_from_room():
+        pass

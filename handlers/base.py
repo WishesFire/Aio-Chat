@@ -1,7 +1,9 @@
 from aiohttp import web, WSMsgType
 from aiohttp_session import get_session
-from RandomName import create_username, create_file_name
-from models.database import User, Message, Rooms
+from tools.RandomName import create_username, create_file_name
+from tools.csrf_token import generate_token, check_token
+from tools.create_slug import create_slug
+from models.database import User, Message, Rooms, MessagesRoom
 from handlers.commands import time_now, curs_now
 from config import BASE_STATIC_DIR
 import aiohttp_jinja2
@@ -50,6 +52,7 @@ class Rules(web.View):
 class Messages(web.View):
     @aiohttp_jinja2.template('messages.html')
     async def get(self):
+        """ИНВАЙТИ ДЛЯ ЗАХОДЖЕННЯ В РУМУ"""
         pass
 
 
@@ -58,32 +61,55 @@ class CreateRoom(web.View):
     async def get(self):
         session = await get_session(self.request)
         db = self.request.app['db']
+        token = await generate_token()
+        session['token'] = token
         user = session['user']
         names_of_rooms = await Rooms.get_user_room(db=db, username=user)
+        print(names_of_rooms)
         if names_of_rooms is None:
-            return {'user': user, 'rooms': ''}
+            return {'user': user, 'rooms': '', 'token': token}
         else:
-            return {'user': user, 'rooms': names_of_rooms['rooms']}
+            return {'user': user, 'rooms': names_of_rooms['rooms'], 'token': token}
 
     async def post(self):
-        data = await self.request.post()
-        session = await get_session(self.request)
-        db = self.request.app['db']
-        user = session['user']
-        print(data)
-        print(data['name-room'])
-        if data['name-room'] and data['password']:
-            room_name = data['name-room']
-            room_password = data['password']
-            status = await Rooms.save_room(db=db, username=user, room_name=room_name, password=room_password)
-            if status:
-                url = self.request.app.router['rooms'].url_for()
-                return web.HTTPFound(location=url)
+        try:
+            data = await self.request.post()
+            session = await get_session(self.request)
+            db = self.request.app['db']
+            user = session['user']
+            if data['name-room'] and data['password']:
+                room_name = data['name-room']
+                if data['password'] == '#':
+                    try:
+                        await Rooms.delete_room(db=db, username=user, room_name=room_name)
+                        return {}
+                    except RuntimeError:
+                        print('БЛЯТЬ!')
+                elif data['password'] == '1':
+                    status = await Rooms.find_room(db=db, username=user, room_name=room_name)
+                    if status:
+                        name = await create_slug(user)
+                        slug = await create_slug(room_name)
+                        location = self.request.app.router['current_room'].url_for(name=name, slug=slug)
+                        print(location)
+                        return web.HTTPFound(location=location)
+                else:
+                    token = session['token']
+                    status = await check_token(session_token=token, html_token=data['csrf_token'])
+                    if status:
+                        room_password = data['password']
+                        status = await Rooms.save_room(db=db, username=user, room_name=room_name, password=room_password)
+                        if status:
+                            url = self.request.app.router['rooms'].url_for()
+                            return web.HTTPFound(location=url)
+                        else:
+                            return web.HTTPForbidden()
+                    else:
+                        return web.HTTPForbidden()
             else:
                 return web.HTTPForbidden()
-        elif data['text']:
-            room_name = data['text']
-            await Rooms.delete_room(db=db, username=user, room_name=room_name)
+        except RuntimeError:
+            print('Що')
 
 
 class WebSocket(web.View):

@@ -22,6 +22,7 @@
 
     <div class="myModal" id="myModal">
         <form action="{{ url('rooms') }}" method="POST" accept-charset="utf-8" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="csrf_token" value="{{ token }}" />
             <label for="name-room"><b>Room name</b></label>
             <input type="text" placeholder="Enter name room" name="name-room" maxlength="18" required>
 
@@ -41,5 +42,6 @@
                   integrity="sha256-0YPKAwZP7Mp3ALMRVB2i8GXeEndvCq3eSl/WsAl1Ryk=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="../static/js/window_form.js"></script>
     <script type="text/javascript" src="../static/js/random_color_box.js"></script>
-    <script type="text/javascript" src="../static/js/delete_room.js"></script>
+    <script type="text/javascript">var csrfToken = "{{ token }}";</script>
+    <script type="text/javascript" src="../static/js/delete_enter_room.js"></script>
 {% endblock %}
