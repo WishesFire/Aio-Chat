@@ -1,8 +1,68 @@
 {% extends 'base.html' %}
-<title>{% block title %}Room - {{ room_name }}{% endblock %}</title>
+<title>{% block title %} Room - {{ slug }} {% endblock %}</title>
 {% block content %}
     <h1>Hi!!!</h1>
+    {% if not status %}
+        <div class="room-password">
+            <form action="{{ app.router['current_room'].url_for(name=name, slug=slug) }}" method="POST"
+                  accept-charset="utf-8" enctype="application/x-www-form-urlencoded">
+                <input type="hidden" name="csrf_token" value="{{ token }}" />
+                <label for="password"><b>Password for room</b></label>
+                <input type="password" placeholder="Enter password" name="password" required>
+                <button type="submit" class="register-room">Log in</button>
+            </form>
+        </div>
+    {% else %}
+        <h1>Chat Welcome</h1>
+        <div class="chat">
+
+            <div id="modalWindow">
+                <p>Такой команды нету(</p>
+                <span id="modalWindow_close" class="close">ₓ</span>
+            </div>
+            <div id="myOverlay"></div>
+
+            <div class="messages-form" id="mess_form">
+
+                {% for message in messages %}
+                    {% if 'message' == messages[message][0] %}
+                        <div class="container">
+                            <p>{{ messages[message][1] }}</p>
+                            <span class="name-right">{{ message }}</span>
+                        </div>
+                    {% elif 'image' == messages[message][0] %}
+                        <div class="container">
+                            <img class="size-photo" src="{{ messages[message][1] }}" />
+                            <span class="name-right">{{ message }}</span>
+                        </div>
+                    {% elif 'audio' == messages[message][0] %}
+                        <div class="container">
+                           <audio controls src="{{ messages[message][1] }}"> Your browser does not support the
+                                <code>audio</code> element.
+                            </audio>
+                           <span class="name-right">{{ message }}</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="chat-input">
+                <form method="post" onsubmit="return false" accept-charset="utf-8" enctype="application/x-www-form-urlencoded" id="chat-form">
+                    <textarea maxlength="400" rows="5" id="chat-text" name="chat-text" type="text" value="" placeholder="Введите сообщение"></textarea>
+                    <input id="avatar" accept="image/*, audio/*" multiple="multiple" type="file" name="chat-picture" class="form-submit" value="Picture" />
+                    <input id="submit" type="submit" class="form-submit" value="Send :)"/>
+                    <button id="btn-clear" class="form-submit">Очистить поле</button>
+                </form>
+                <input type="checkbox" id="prev_messages">
+                <label for="prev_messages">Check previous messages</label>
+            </div>
+        </div>
+    {% endif %}
+
 {% endblock %}
 
 {% block js_script %}
+    <script type="text/javascript">var WS_URL = "{{ app.router['room_sockets'].url_for(name=name, slug=slug) }}";</script>
+    <script type="text/javascript" src="../static/js/send_message_room.js"></script>
+    <script type="text/javascript" src="../static/js/clear_button.js"></script>
 {% endblock %}

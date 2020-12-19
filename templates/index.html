@@ -44,13 +44,11 @@
                     <div class="container">
                         <p>{{ message['message'] }}</p>
                         <span class="name-right">{{ message['user'] }}</span>
-                        <button class="hide_send_button"></button>
                     </div>
                 {% elif message['image'] %}
                     <div class="container">
                         <img class="size-photo" src="{{ message['image'] }}" />
                         <span class="name-right">{{ message['user'] }}</span>
-                        <button class="hide_send_button"></button>
                     </div>
                 {% elif message['audio'] %}
                     <div class="container">

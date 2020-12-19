@@ -71,12 +71,29 @@ class Rooms:
             return False
 
     @staticmethod
-    async def save_room(db: AsyncIOMotorDatabase, username,  room_name, password):
+    async def check_owner(db: AsyncIOMotorDatabase, username, name, slug):
+        cursor = await db.Roomcollection.find_one({'username': username})
+        for room in cursor['rooms']:
+            if name == cursor['rooms'][room][1] and slug == cursor['rooms'][room][2]:
+                return True
+        return False
+
+    @staticmethod
+    async def check_password(db: AsyncIOMotorDatabase, username, password, name, slug):
+        cursor = await db.Roomcollection.find_one({'username': username})
+        for room in cursor['rooms']:
+            if name == cursor['rooms'][room][1] and slug == cursor['rooms'][room][2]:
+                if password == cursor['rooms'][room][0]:
+                    return True
+        return False
+
+    @staticmethod
+    async def save_room(db: AsyncIOMotorDatabase, username,  room_name, password, name, slug):
         cursor = await db.Roomcollection.find_one({'username': username})
         if cursor == None:
             new_room = {
                 'username': username,
-                'rooms': {room_name: password}
+                'rooms': {room_name: [password, name, slug]}
             }
             await db.Roomcollection.insert_one(new_room)
             return True
@@ -85,7 +102,8 @@ class Rooms:
                 if room_name in cursor['rooms']:
                     return False
                 else:
-                    await db.Roomcollection.update_one({'username': username}, {'$set': {f'rooms.{room_name}': password}})
+                    await db.Roomcollection.update_one({'username': username}, {'$set': {f'rooms.{room_name}':
+                                                                                             [password, name, slug]}})
                 return True
             else:
                 return False
@@ -93,8 +111,11 @@ class Rooms:
     @staticmethod
     async def delete_room(db: AsyncIOMotorDatabase, username, room_name):
         p = await db.Roomcollection.find_one({'username': username})
-        password = p['rooms'][room_name]
-        await db.Roomcollection.update_one({'username': username}, {'$unset': {f'rooms.{room_name}': password}})
+        password = p['rooms'][room_name][0]
+        name = p['rooms'][room_name][1]
+        slug = p['rooms'][room_name][2]
+        await db.Roomcollection.update_one({'username': username}, {'$unset': {f'rooms.{room_name}':
+                                                                                   [password, name, slug]}})
 
     @staticmethod
     async def delete_all_room(db: AsyncIOMotorDatabase):
@@ -106,5 +127,34 @@ class MessagesRoom:
         Messages from specific room
     """
     @staticmethod
-    async def get_messages_from_room():
-        pass
+    async def get_messages_from_room(db: AsyncIOMotorDatabase, username, slug):
+        cursor = await db.MessagesRoomcollection.find_one({'username': username, 'slug': slug})
+        if cursor is None:
+            new_message_box = {
+                'username': username,
+                'slug': slug,
+                'messages': {}
+            }
+            await db.MessagesRoomcollection.insert_one(new_message_box)
+            return ''
+        else:
+            return cursor['messages']
+
+    @staticmethod
+    async def save_message(db: AsyncIOMotorDatabase, username, slug, message=None, image=None, audio=None):
+        if image is not None:
+            await db.MessagesRoomcollection.update_one({'username': username, 'slug': slug},
+                                               {'$set': {f'messages.{username}': ["image", image]}})
+        elif audio is not None:
+            await db.MessagesRoomcollection.update_one({'username': username, 'slug': slug},
+                                               {'$set': {f'messages.{username}': ["audio", audio]}})
+        elif message is not None:
+            await db.MessagesRoomcollection.update_one({'username': username, 'slug': slug},
+                                                   {'$set': {f'messages.{username}': ["message", message]}})
+        else:
+            return False
+        return True
+
+    @staticmethod
+    async def delete_all_message_room(db: AsyncIOMotorDatabase):
+        await db.MessagesRoomcollection.delete_many({})

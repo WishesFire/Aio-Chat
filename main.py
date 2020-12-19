@@ -5,7 +5,8 @@ import aiohttp_jinja2
 from jinja2 import FileSystemLoader
 from cryptography import fernet
 from handlers.base import Chat, WebSocket, Rules, CreateRoom, Messages
-from handlers.room_handler import ChatRoom
+from handlers.room_handler import ChatRoom, WebSocketRoom
+from aioredis_getting import listen_to_redis
 from aiohttp_session import setup
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -17,9 +18,11 @@ import ssl
 def main():
     app = web.Application()
     app['websockets'] = {}
+    app['websockets_room'] = {}
     app['config'] = SECRET_KEY
     client = AsyncIOMotorClient(MONGO_HOST)
     app['db'] = client['AioDB']
+    app['db_redis'] = await listen_to_redis()
     app.on_startup.append(start_back_tasks)
     app.on_shutdown.append(stop_back_tasks)
     app.on_shutdown.append(shutdown)
@@ -31,10 +34,10 @@ def main():
 
     app.router.add_route('GET', '/', Chat, name='main')
     app.router.add_route('GET', '/ws', WebSocket, name='sockets')
-    app.router.add_route('GET', '/ws/{name}/{slug}', WebSocket, name='room_sockets')
+    app.router.add_route('GET', '/ws/{name}/{slug}', WebSocketRoom, name='room_sockets')
     app.router.add_route('GET', '/rules', Rules, name='rules')
     app.router.add_route('*', '/rooms', CreateRoom, name='rooms')
-    app.router.add_route('GET', r'/{name}/{slug}', ChatRoom, name='current_room')
+    app.router.add_route('*', r'/{name}/{slug}', ChatRoom, name='current_room')
     app.router.add_route('GET', '/messages', Messages, name='messages')
     app.router.add_static('/static', 'static', name='static')
 
@@ -57,8 +60,12 @@ async def stop_back_tasks(app):
 async def shutdown(app):
     for ws in app['websockets'].values():
         await ws.close()
+    for ws in app['websockets_room'].values():
+        await ws.close()
     app['websockets'].clear()
-
+    app['websockets_room'].clear()
+    await app['db_redis'].close()
+    await app['db_redis'].wait_closed()
 
 if __name__ == '__main__':
     main()

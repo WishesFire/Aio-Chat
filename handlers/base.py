@@ -3,6 +3,7 @@ from aiohttp_session import get_session
 from tools.RandomName import create_username, create_file_name
 from tools.csrf_token import generate_token, check_token
 from tools.create_slug import create_slug
+from tools.get_base import get_base_needed
 from models.database import User, Message, Rooms, MessagesRoom
 from handlers.commands import time_now, curs_now
 from config import BASE_STATIC_DIR
@@ -19,8 +20,7 @@ text_for_rules_en = " Greetings to the anonymous chat, feel safe" \
 class Chat(web.View):
     @aiohttp_jinja2.template('index.html')
     async def get(self):
-        db = self.request.app['db']
-        session = await get_session(self.request)
+        db, session = await get_base_needed(self.request)
         if 'user' in session:
             print('Юзер в сесіії')
             user = session['user']
@@ -59,13 +59,11 @@ class Messages(web.View):
 class CreateRoom(web.View):
     @aiohttp_jinja2.template('rooms.html')
     async def get(self):
-        session = await get_session(self.request)
-        db = self.request.app['db']
+        db, session = await get_base_needed(self.request)
         token = await generate_token()
         session['token'] = token
         user = session['user']
         names_of_rooms = await Rooms.get_user_room(db=db, username=user)
-        print(names_of_rooms)
         if names_of_rooms is None:
             return {'user': user, 'rooms': '', 'token': token}
         else:
@@ -74,11 +72,12 @@ class CreateRoom(web.View):
     async def post(self):
         try:
             data = await self.request.post()
-            session = await get_session(self.request)
-            db = self.request.app['db']
+            db, session = await get_base_needed(self.request)
             user = session['user']
             if data['name-room'] and data['password']:
                 room_name = data['name-room']
+                name = await create_slug(user)
+                slug = await create_slug(room_name)
                 if data['password'] == '#':
                     try:
                         await Rooms.delete_room(db=db, username=user, room_name=room_name)
@@ -87,18 +86,17 @@ class CreateRoom(web.View):
                         print('БЛЯТЬ!')
                 elif data['password'] == '1':
                     status = await Rooms.find_room(db=db, username=user, room_name=room_name)
-                    if status:
-                        name = await create_slug(user)
-                        slug = await create_slug(room_name)
-                        location = self.request.app.router['current_room'].url_for(name=name, slug=slug)
-                        print(location)
-                        return web.HTTPFound(location=location)
+                    if not status:
+                        return web.HTTPForbidden()
+                        #location = self.request.app.router['current_room'].url_for(name=name, slug=slug)
+                        #return web.HTTPFound(location=location)
                 else:
                     token = session['token']
                     status = await check_token(session_token=token, html_token=data['csrf_token'])
                     if status:
                         room_password = data['password']
-                        status = await Rooms.save_room(db=db, username=user, room_name=room_name, password=room_password)
+                        status = await Rooms.save_room(db=db, username=user, room_name=room_name, password=room_password,
+                                                       name=name, slug=slug)
                         if status:
                             url = self.request.app.router['rooms'].url_for()
                             return web.HTTPFound(location=url)
@@ -117,8 +115,7 @@ class WebSocket(web.View):
         ws = web.WebSocketResponse()
         await ws.prepare(self.request)
 
-        session = await get_session(self.request)
-        db = self.request.app['db']
+        db, session = await get_base_needed(self.request)
         user_name = await User.get_user(db=db, data=session.get('user'))
         if user_name:
             count_connection = len(self.request.app['websockets'])
@@ -167,8 +164,7 @@ class WebSocket(web.View):
                     """
                     index_audio_name = data.find('data:audio')
                     index_base_audio_content = data.find("base64,")
-                    print(index_audio_name)
-                    print(index_base_audio_content)
+
                     if index_audio_name == -1 or index_base_audio_content == -1:
                         continue
 
@@ -183,7 +179,6 @@ class WebSocket(web.View):
                         f.write(file)
 
                     status = await Message.save_message(db=db, user=user_name, audio=send_name_audio_url)
-                    print(send_name_audio_url)
                     if status:
                         for wss in self.request.app['websockets'].values():
                             await wss.send_json({'audio': send_name_audio_url, 'user': user_name})
@@ -205,7 +200,6 @@ class WebSocket(web.View):
                         """
                             TEXT
                         """
-                        db = self.request.app['db']
                         status = await Message.save_message(db=db, user=user_name, message=str(data.strip()))
                         if status:
                             for wss in self.request.app['websockets'].values():

@@ -1,11 +1,14 @@
 var block = document.getElementById("mess_form");
 block.scrollTop = block.scrollHeight;
 
+var ws_name = "{{ name }}";
+var ws_slug = "{{ slug }}";
+
 try{
-    var socket = new WebSocket('ws://' + window.location.host + '/ws');
+    var socket = new WebSocket('ws://' + window.location.host + WS_URL);
 }
 catch(err){
-    var socket = new WebSocket('wss://' + window.location.host + '/ws');
+    var socket = new WebSocket('wss://' + window.location.host + WS_URL);
 }
 
 socket.binaryType = 'arraybuffer';
@@ -52,17 +55,6 @@ function showMessage(message) {
             .replace('{text}', data.audio)
     }
 
-    else if (data.connection) {
-        console.log(data.connection)
-        $('#count_online').text(data.connection);
-        return;
-    }
-
-    else if (data.disconnect) {
-        console.log(data.disconnect)
-        $('#count_online').text(data.disconnect);
-        return;
-    }
 
     else if (data.not_command) {
         console.log(data.not_command)

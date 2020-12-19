@@ -6,7 +6,9 @@
         {% for room in rooms %}
             <div class="room">
                 <p class="room-text">{{ room }}</p>
-                <button class="random-color-div">Войти</button>
+                <form method="get" action="{{ app.router['current_room'].url_for(name=rooms[room][1], slug=rooms[room][2]) }}">
+                    <button class="random-color-div">Войти</button>
+                </form>
                 <button class="delete-red-button">Удалить</button>
             </div>
         {% endfor %}

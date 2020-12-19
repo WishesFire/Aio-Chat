@@ -1,6 +1,7 @@
 from string import ascii_lowercase
 import random
 
+
 def create_username():
     alphabet = ascii_lowercase + '123456789!@#$*'
     nicks = ''.join([random.choice(random.choice(alphabet)) for _ in range(random.randint(8, 14))])
