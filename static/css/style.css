@@ -299,3 +299,25 @@ h1:hover {
     position: fixed;
     z-index: 999999;
 }
+
+.hidden-text {
+    display: none;
+}
+
+.refresh-button {
+    text-decoration: none;
+    outline: none;
+    display: inline-block;
+    margin: 10px 20px;
+    padding: 10px 30px;
+    position: relative;
+    border: 2px solid #f1c40f;
+    color: #f1c40f;
+    font-family: 'Montserrat', sans-serif;
+    transition: .4s;
+}
+
+.message-text{
+    color: white;
+    font-size: 15px;
+}

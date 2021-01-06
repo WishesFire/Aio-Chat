@@ -1,10 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+<title>{% block title %}Anonymous chat - Invitations{% endblock %}</title>
+{% block content %}
+    {% for invite in lst_invite %}
+        <div class="invites">
+            <p class="message-text">Назва комнати: {{ lst_invite[invite][1] }}</p>
+            <p class="message-text">От кого:</p>
+            <p class="whom_to_send">{{ invite }}</p>
+            <form method="get" action="{{ app.router['current_room'].url_for(name=lst_invite[invite][0], slug=lst_invite[invite][2]) }}">
+                <button class="join_invite">Присоединиться</button>
+            </form>
+        </div>
+    {% endfor %}
+    <button class="refresh-button" type="submit" onclick="refreshPage()">Обновити</button>
+    <button class="clear-invite" type="submit" onclick="delete_all_invites()">Удалити запроси</button>
+{% endblock %}
 
-</body>
-</html>
+{% block js_script %}
+    <script type="text/javascript" src="../static/js/reload_page.js"></script>
+    <script type="text/javascript" src="../static/js/delete_invite_ajax.js"></script>
+{% endblock %}

@@ -26,7 +26,7 @@
         <form action="{{ url('rooms') }}" method="POST" accept-charset="utf-8" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="csrf_token" value="{{ token }}" />
             <label for="name-room"><b>Room name</b></label>
-            <input type="text" placeholder="Enter name room" name="name-room" maxlength="18" required>
+            <input type="text" placeholder="Enter name room" name="name-room" minlength="4" maxlength="18" required>
 
             <label for="password"><b>Password for room</b></label>
             <input type="password" placeholder="Enter Password" name="password" minlength="8" maxlength="18" required>

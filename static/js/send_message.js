@@ -13,12 +13,35 @@ socket.binaryType = 'arraybuffer';
 var  msg_template = `
         <div class="container" id="message">
            <p>{text}</p>
-           <span class="name-right">{user}</span>
+           <p class="hidden-text">{user}</p>
+              <ul>
+                 <li class="dropdown">
+                     <a class="invite-click" href="#">{user}</a>
+                     <ul class="dropdown-menu">
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                     </ul>
+                 </li>
+              </ul>
         </div>`,
     msg_photo_template = `
         <div class="container" id="message">
            <img class="size-photo" src="{text}" />
-           <span class="name-right">{user}</span>
+           <ul>
+                 <li class="dropdown">
+                     <a class="invite-click" href="#">{user}</a>
+                     <ul class="dropdown-menu">
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                     </ul>
+                 </li>
+              </ul>
         </div>`,
     msg_audio_template = `
         <div class="container" id="message">
@@ -26,7 +49,18 @@ var  msg_template = `
                 Your browser does not support the
                 <code>audio</code> element.
             </audio>
-           <span class="name-right">{user}</span>
+           <ul>
+                 <li class="dropdown">
+                     <a class="invite-click" href="#">{user}</a>
+                     <ul class="dropdown-menu">
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                          {nothing}
+                     </ul>
+                 </li>
+              </ul>
         </div>`,
     $messagesContainer = $('#mess_form');
 
@@ -38,18 +72,39 @@ function showMessage(message) {
         var msg = msg_template
             .replace('{user}', data.user)
             .replace('{text}', data.text)
+            .replace('{user}', data.user)
+
+        if (data.name_rooms !== '') {
+            var count_room = data.name_rooms.length;
+            var al = data.name_rooms
+            var msg = Room_generate(msg, al, count_room)
+        }
 
     }
     else if (data.image) {
         var msg = msg_photo_template
             .replace('{user}', data.user)
             .replace('{text}', data.image)
+            .replace('{user}', data.user)
+
+        if (data.name_rooms !== '') {
+            var count_room = data.name_rooms.length;
+            var al = data.name_rooms
+            var msg = Room_generate(msg, al, count_room)
+        }
     }
 
     else if (data.audio) {
         var msg = msg_audio_template
             .replace('{user}', data.user)
             .replace('{text}', data.audio)
+            .replace('{user}', data.user)
+
+        if (data.name_rooms !== '') {
+            var count_room = data.name_rooms.length;
+            var al = data.name_rooms
+            var msg = Room_generate(msg, al, count_room)
+        }
     }
 
     else if (data.connection) {
@@ -85,6 +140,44 @@ function showMessage(message) {
         block.scrollTop = document.getElementById('mess_form').scrollHeight;
     }
 
+    function Room_generate (a, al, count_room) {
+        if (count_room === 1) {
+            var b = a
+                    .replace('{nothing}', '<li><button class="inviter">' + al[0] + '</button></li>')
+        }
+
+        else if (count_room === 2) {
+            var b = a
+                    .replace('{nothing}', '<li><button class="inviter">' + al[0] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[1] + '</button></li>')
+        }
+
+        else if (count_room === 3) {
+            var b = a
+                    .replace('{nothing}', '<li><button class="inviter">' + al[0] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[1] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[2] + '</button></li>')
+        }
+
+        else if (count_room === 4) {
+            var b = a
+                    .replace('{nothing}', '<li><button class="inviter">' + al[0] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[1] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[2] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[3] + '</button></li>')
+        }
+
+        else if (count_room === 5) {
+            var b = a
+                    .replace('{nothing}', '<li><button class="inviter">' + al[0] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[1] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[2] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[3] + '</button></li>')
+                    .replace('{nothing}', '<li><button class="inviter">' + al[4] + '</button></li>')
+        }
+
+        return b
+    }
 }
 
 $(document).ready(function(){
@@ -95,38 +188,28 @@ $(document).ready(function(){
 
         if ($message === '') {
             createPhotoFile(data)
-            $(this).prop('disabled', true);
-            setTimeout(function () {
-                $(this).prop('disabled', false);
-            }.bind(this), 5e3);
         }
         else if (data === undefined){
             socket.send($message.val());
             $message.val('').focus();
-            $(this).prop('disabled', true);
-            setTimeout(function () {
-                $(this).prop('disabled', false);
-            }.bind(this), 5e3);
         }
         else if ($message !== '' && data !== '') {
             createPhotoFile(data)
-            $(this).prop('disabled', true);
-            setTimeout(function () {
-                $(this).prop('disabled', false);
-            }.bind(this), 5e3);
         }
     });
 
     function createPhotoFile(data){
         console.log(data.size)
+        var file_size = data.size
 
-        var reader = new FileReader();
-        reader.onload = function (evt){
+        if (file_size < 2000000) {
+            var reader = new FileReader();
+            reader.onload = function (evt){
             var element = data.name + ' ' + evt.target.result
             socket.send(element);
-        };
-        reader.readAsDataURL(data);
-
+            };
+            reader.readAsDataURL(data);
+        }
     }
 
     socket.onopen = function (event) {

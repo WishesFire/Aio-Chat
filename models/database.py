@@ -19,6 +19,10 @@ class User:
         return {'status': 200}
 
     @staticmethod
+    async def get_all_user(db: AsyncIOMotorDatabase):
+        return await db.Usercollection.find()
+
+    @staticmethod
     async def delete_all_users(db: AsyncIOMotorDatabase):
         await db.Usercollection.delete_many({})
 
@@ -73,10 +77,13 @@ class Rooms:
     @staticmethod
     async def check_owner(db: AsyncIOMotorDatabase, username, name, slug):
         cursor = await db.Roomcollection.find_one({'username': username})
-        for room in cursor['rooms']:
-            if name == cursor['rooms'][room][1] and slug == cursor['rooms'][room][2]:
-                return True
-        return False
+        if cursor is not None:
+            for room in cursor['rooms']:
+                if name == cursor['rooms'][room][1] and slug == cursor['rooms'][room][2]:
+                    return True
+            return False
+        else:
+            return False
 
     @staticmethod
     async def check_password(db: AsyncIOMotorDatabase, username, password, name, slug):
@@ -133,7 +140,7 @@ class MessagesRoom:
             new_message_box = {
                 'username': username,
                 'slug': slug,
-                'messages': {}
+                'messages': []
             }
             await db.MessagesRoomcollection.insert_one(new_message_box)
             return ''
@@ -144,13 +151,13 @@ class MessagesRoom:
     async def save_message(db: AsyncIOMotorDatabase, username, slug, message=None, image=None, audio=None):
         if image is not None:
             await db.MessagesRoomcollection.update_one({'username': username, 'slug': slug},
-                                               {'$set': {f'messages.{username}': ["image", image]}})
+                                               {'$push': {'messages': {username: ["image", image]}}})
         elif audio is not None:
             await db.MessagesRoomcollection.update_one({'username': username, 'slug': slug},
-                                               {'$set': {f'messages.{username}': ["audio", audio]}})
+                                               {'$push': {'messages': {username: ["audio", audio]}}})
         elif message is not None:
             await db.MessagesRoomcollection.update_one({'username': username, 'slug': slug},
-                                                   {'$set': {f'messages.{username}': ["message", message]}})
+                                                   {'$push': {'messages': {username: ["message", message]}}})
         else:
             return False
         return True

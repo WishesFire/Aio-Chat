@@ -24,25 +24,27 @@
 
             <div class="messages-form" id="mess_form">
 
-                {% for message in messages %}
-                    {% if 'message' == messages[message][0] %}
-                        <div class="container">
-                            <p>{{ messages[message][1] }}</p>
-                            <span class="name-right">{{ message }}</span>
-                        </div>
-                    {% elif 'image' == messages[message][0] %}
-                        <div class="container">
-                            <img class="size-photo" src="{{ messages[message][1] }}" />
-                            <span class="name-right">{{ message }}</span>
-                        </div>
-                    {% elif 'audio' == messages[message][0] %}
-                        <div class="container">
-                           <audio controls src="{{ messages[message][1] }}"> Your browser does not support the
-                                <code>audio</code> element.
-                            </audio>
-                           <span class="name-right">{{ message }}</span>
-                        </div>
-                    {% endif %}
+                {% for dct_message in messages %}
+                    {% for mess in dct_message %}
+                        {% if 'message' == dct_message[mess][0] %}
+                            <div class="container">
+                                <p>{{ dct_message[mess][1] }}</p>
+                                <span class="name-right">{{ mess }}</span>
+                            </div>
+                        {% elif 'image' == dct_message[mess][0] %}
+                            <div class="container">
+                                <img class="size-photo" src="{{ dct_message[mess][1] }}" />
+                                <span class="name-right">{{ mess }}</span>
+                            </div>
+                        {% elif 'audio' == dct_message[mess][0] %}
+                            <div class="container">
+                               <audio controls src="{{ dct_message[mess][1] }}"> Your browser does not support the
+                                    <code>audio</code> element.
+                                </audio>
+                               <span class="name-right">{{ mess }}</span>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                 {% endfor %}
             </div>
 
@@ -63,6 +65,7 @@
 
 {% block js_script %}
     <script type="text/javascript">var WS_URL = "{{ app.router['room_sockets'].url_for(name=name, slug=slug) }}";</script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/fernet@0.3.1/fernetBrowser.min.js"></script>
     <script type="text/javascript" src="../static/js/send_message_room.js"></script>
     <script type="text/javascript" src="../static/js/clear_button.js"></script>
 {% endblock %}

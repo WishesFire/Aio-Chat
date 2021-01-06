@@ -1,8 +1,6 @@
 var block = document.getElementById("mess_form");
+const Secret_key = ''
 block.scrollTop = block.scrollHeight;
-
-var ws_name = "{{ name }}";
-var ws_slug = "{{ slug }}";
 
 try{
     var socket = new WebSocket('ws://' + window.location.host + WS_URL);
@@ -35,14 +33,32 @@ var  msg_template = `
 
 
 function showMessage(message) {
-    console.log(message);
     var data = jQuery.parseJSON(message.data);
-    if (data.user && data.text) {
+    console.log(data)
+
+    if (data.user && data.text && data.info) {
+        var msg = msg_template
+            .replace('{user}', data.user)
+            .replace('{text}', data.text)
+        console.log(data.info)
+        var indexes = data.info.slice(-1)
+        if (indexes === '@') {
+            var data_text = data.info.slice(0, 44)
+        }
+        else {
+            var data_text = data.info.slice(11)
+        }
+
+        localStorage.setItem('publicKey', data_text);
+    }
+
+    else if (data.user && data.text) {
         var msg = msg_template
             .replace('{user}', data.user)
             .replace('{text}', data.text)
 
     }
+
     else if (data.image) {
         var msg = msg_photo_template
             .replace('{user}', data.user)
@@ -87,27 +103,29 @@ $(document).ready(function(){
 
         if ($message === '') {
             createPhotoFile(data)
-            $(this).prop('disabled', true);
-            setTimeout(function () {
-                $(this).prop('disabled', false);
-            }.bind(this), 5e3);
         }
+
         else if (data === undefined){
-            socket.send($message.val());
+            // Encrypt
+            var data_message = $message.val()
+            const cipher_key = localStorage.getItem('publicKey')
+            console.log(cipher_key)
+
+            socket.send(encryptMessage(data_message, cipher_key));
             $message.val('').focus();
-            $(this).prop('disabled', true);
-            setTimeout(function () {
-                $(this).prop('disabled', false);
-            }.bind(this), 5e3);
         }
+
         else if ($message !== '' && data !== '') {
             createPhotoFile(data)
-            $(this).prop('disabled', true);
-            setTimeout(function () {
-                $(this).prop('disabled', false);
-            }.bind(this), 5e3);
         }
     });
+
+    function encryptMessage(msg, key) {
+        var secret = new fernet.Secret(key);
+        var token = new fernet.Token({secret: secret})
+        var mess_token = token.encode(msg)
+        return mess_token
+    }
 
     function createPhotoFile(data){
         console.log(data.size)

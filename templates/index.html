@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 <title>{% block title %}Anonymous chat{% endblock %}</title>
+{% block style %}
+<link rel="stylesheet" type="text/css" href="../static/css/dropdowns_style.css">
+{% endblock %}
 
 {% block content %}
     <div class="link-rules">
@@ -12,7 +15,7 @@
         <a href="{{ app.router['messages'].url_for() }}">Инвайты</a>
     </div>
 
-    <div class="username">Your nick: {{ user }}}</div>
+    <div class="username">Your nick: {{ user }}</div>
     <p class="headline-online">Онлайн:</p>
     <div class="online-people" id="count_online">
         0
@@ -43,19 +46,49 @@
                 {% if message['message'] %}
                     <div class="container">
                         <p>{{ message['message'] }}</p>
-                        <span class="name-right">{{ message['user'] }}</span>
+                        <p class="hidden-text">{{ message['user'] }}</p>
+                        <ul>
+                            <li class="dropdown">
+                                <a class="invite-click" href="#">{{ message['user'] }}</a>
+                                <ul class="dropdown-menu">
+                                    {% for room in name_rooms %}
+                                        <li><button class="inviter">{{ room }}</button></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
                 {% elif message['image'] %}
                     <div class="container">
                         <img class="size-photo" src="{{ message['image'] }}" />
-                        <span class="name-right">{{ message['user'] }}</span>
+                        <p class="hidden-text">{{ message['user'] }}</p>
+                        <ul>
+                            <li class="dropdown">
+                                <a href="#">{{ message['user'] }}</a>
+                                <ul class="dropdown-menu">
+                                    {% for room in name_rooms %}
+                                        <li><button class="inviter">{{ room }}</button></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
                 {% elif message['audio'] %}
                     <div class="container">
                        <audio controls src="{{ message['audio'] }}"> Your browser does not support the
                             <code>audio</code> element.
-                        </audio>
-                       <span class="name-right">{{ message['user'] }}</span>
+                       </audio>
+                       <p class="hidden-text">{{ message['user'] }}</p>
+                       <ul>
+                            <li class="dropdown">
+                                <a href="#">{{ message['user'] }}</a>
+                                <ul class="dropdown-menu">
+                                    {% for room in name_rooms %}
+                                        <li><button class="inviter">{{ room }}</button></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
                 {% endif %}
             {% endfor %}
@@ -78,4 +111,6 @@
     <script type="text/javascript" src="../static/js/send_message.js"></script>
     <script type="text/javascript" src="../static/js/clear_button.js"></script>
     <script type="text/javascript" src="../static/js/drop_down_menu.js"></script>
+    <script type="text/javascript" src="../static/js/dropdown_menu.js"></script>
+    <script type="text/javascript" src="../static/js/block_button.js"></script>
 {% endblock %}

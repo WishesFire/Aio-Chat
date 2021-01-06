@@ -3,8 +3,9 @@ from aiohttp_session import get_session
 from tools.RandomName import create_username, create_file_name
 from tools.csrf_token import generate_token, check_token
 from tools.create_slug import create_slug
+from aioredis_getting import redis_convert
 from tools.get_base import get_base_needed
-from models.database import User, Message, Rooms, MessagesRoom
+from models.database import User, Message, Rooms
 from handlers.commands import time_now, curs_now
 from config import BASE_STATIC_DIR
 import aiohttp_jinja2
@@ -21,17 +22,42 @@ class Chat(web.View):
     @aiohttp_jinja2.template('index.html')
     async def get(self):
         db, session = await get_base_needed(self.request)
+        messages = await Message.get_all_message_users(db=db)
         if 'user' in session:
             print('Юзер в сесіії')
             user = session['user']
+            name_rooms = await Rooms.get_user_room(db=db, username=user)
+            if name_rooms is not None:
+                return {'user': user, 'messages': messages, 'name_rooms': name_rooms['rooms']}
+            else:
+                return {'user': user, 'messages': messages, 'name_rooms': ''}
         else:
             print('Строверння юзера')
             user = create_username()
             await User.create_user(db=db, data=user)
             session['user'] = user
-        messages = await Message.get_all_message_users(db=db)
+            return {'user': user, 'messages': messages}
 
-        return {'user': user, 'messages': messages}
+    async def post(self):
+        session = await get_session(self.request)
+        user = session['user']
+        data = await self.request.post()
+        redis = self.request.app['db_redis']
+
+        whom_to_send = data['whom_to_send']
+        whom_to_room = data['room_name']
+
+        if not whom_to_send or not whom_to_room:
+            return web.HTTPError()
+
+        user_ver_slug = await create_slug(user)
+        whom_to_room_ver_slug = await create_slug(whom_to_room)
+
+        user = user + '.---.' + str(user_ver_slug)
+        whom_to_room = whom_to_room + '.---.' + str(whom_to_room_ver_slug)
+
+        await redis.hmset(whom_to_send, user, whom_to_room)
+        return {}
 
 
 class Rules(web.View):
@@ -52,8 +78,27 @@ class Rules(web.View):
 class Messages(web.View):
     @aiohttp_jinja2.template('messages.html')
     async def get(self):
-        """ИНВАЙТИ ДЛЯ ЗАХОДЖЕННЯ В РУМУ"""
-        pass
+        _, session = await get_base_needed(self.request)
+        user = session['user']
+        redis = self.request.app['db_redis']
+
+        lst_invite = await redis.hgetall(user, encoding='utf-8')
+        print(lst_invite)
+        lst_invite = await redis_convert(lst_invite)
+
+        return {'lst_invite': lst_invite}
+
+    async def post(self):
+        _, session = await get_base_needed(self.request)
+        redis = self.request.app['db_redis']
+        user = session['user']
+        data = await self.request.post()
+        whom_to_send = data['whom_to_send']
+        if whom_to_send == '1-1':
+            await redis.delete(user)
+        else:
+            redis.hdel(user, whom_to_send)
+        return {'status': 200}
 
 
 class CreateRoom(web.View):
@@ -90,6 +135,7 @@ class CreateRoom(web.View):
                         return web.HTTPForbidden()
                         #location = self.request.app.router['current_room'].url_for(name=name, slug=slug)
                         #return web.HTTPFound(location=location)
+                    return {}
                 else:
                     token = session['token']
                     status = await check_token(session_token=token, html_token=data['csrf_token'])
@@ -155,8 +201,16 @@ class WebSocket(web.View):
 
                     status = await Message.save_message(db=db, user=user_name, image=send_name_photo_url)
                     if status:
+                        name_rooms = await Rooms.get_user_room(db=db, username=user_name)
+                        if name_rooms is None:
+                            ls = ''
+                        else:
+                            ls = []
+                            for room in name_rooms['rooms']:
+                                ls.append(room)
+
                         for wss in self.request.app['websockets'].values():
-                            await wss.send_json({'image': send_name_photo_url, 'user': user_name})
+                            await wss.send_json({'image': send_name_photo_url, 'user': user_name, 'name_rooms': ls})
 
                 elif len(str(data)) > 1000 and 'data:audio' in str(data):
                     """
@@ -180,8 +234,16 @@ class WebSocket(web.View):
 
                     status = await Message.save_message(db=db, user=user_name, audio=send_name_audio_url)
                     if status:
+                        name_rooms = await Rooms.get_user_room(db=db, username=user_name)
+                        if name_rooms is None:
+                            ls = ''
+                        else:
+                            ls = []
+                            for room in name_rooms['rooms']:
+                                ls.append(room)
+
                         for wss in self.request.app['websockets'].values():
-                            await wss.send_json({'audio': send_name_audio_url, 'user': user_name})
+                            await wss.send_json({'audio': send_name_audio_url, 'user': user_name, 'name_rooms': ls})
 
                 elif len(str(data)) > 400 or len(str(data)) == 0 or str(data) == '' or str(data) == ' ':
                     continue
@@ -202,8 +264,16 @@ class WebSocket(web.View):
                         """
                         status = await Message.save_message(db=db, user=user_name, message=str(data.strip()))
                         if status:
+                            name_rooms = await Rooms.get_user_room(db=db, username=user_name)
+                            if name_rooms is None:
+                                ls = ''
+                            else:
+                                ls = []
+                                for room in name_rooms['rooms']:
+                                    ls.append(room)
+
                             for wss in self.request.app['websockets'].values():
-                                await wss.send_json({'text': data, 'user': user_name})
+                                await wss.send_json({'text': data, 'user': user_name, 'name_rooms': ls})
 
             elif msg.type == WSMsgType.ERROR:
                 print('ws connection closed with exception %s' % ws.exception())
@@ -211,9 +281,12 @@ class WebSocket(web.View):
 
         del self.request.app['websockets'][user_name]
         count_connection = len(self.request.app['websockets'])
-        for wss in self.request.app['websockets'].values():
-            await wss.send_json({'disconnect': count_connection})
-        return ws
+        if count_connection == 0:
+            return ws
+        else:
+            for wss in self.request.app['websockets'].values():
+                await wss.send_json({'disconnect': count_connection})
+                return ws
 
     async def commands(self, text):
         if text == '/time':
