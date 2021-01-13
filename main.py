@@ -1,7 +1,4 @@
 from aiohttp import web
-import base64
-import logging
-import aiohttp_jinja2
 from jinja2 import FileSystemLoader
 from cryptography import fernet
 from handlers.base import Chat, WebSocket, Rules, CreateRoom, Messages
@@ -15,6 +12,9 @@ from config import SECRET_KEY_RECAPTCHA, SECRET_SITE_RECAPTCHA, BASE_DIR, MONGO_
 from config import generate_key
 import ssl
 import aioredis
+import base64
+import logging
+import aiohttp_jinja2
 
 
 def main():
@@ -53,7 +53,7 @@ def main():
 async def start_back_tasks(app):
     app['db_redis'] = await aioredis.create_redis_pool('redis://localhost')
     app['clear_day'] = app.loop.create_task(clear_chat(app['db'], app['db_redis']))
-    app['aio_bot'] = app.loop.create_task(antispam_bot())
+    #app['aio_bot'] = app.loop.create_task(antispam_bot(app['db']))
 
 
 async def start_back_tasks_key(app):
@@ -65,6 +65,8 @@ async def stop_back_tasks(app):
     await app['clear_day']
     app['create_key'].cancel()
     await app['create_key']
+    #app['aio_bot'].cancel()
+    #await app['aio_bot']
 
 
 async def shutdown(app):

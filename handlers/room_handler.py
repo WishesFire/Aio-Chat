@@ -5,7 +5,7 @@ from tools.csrf_token import generate_token, check_token
 from tools.RandomName import create_file_name
 from handlers.commands import time_now, curs_now
 from tools.dh_key import decrypt_base
-from config import BASE_STATIC_DIR, PRIVATE_KEY, PRIVATE_KEY_PATH
+from config import BASE_STATIC_DIR, PRIVATE_KEY, PRIVATE_KEY_PATH, SITE_STORAGE
 from cryptography.fernet import Fernet
 from random import randint, sample
 import string
@@ -32,31 +32,16 @@ class ChatRoom(web.View):
                 with open(PRIVATE_KEY_PATH, 'rb') as f:
                     privat_key = pickle.load(f)
 
-                messages = await MessagesRoom.get_messages_from_room(db=db, username=user, slug=slug)
                 del session['flag-password-iteration']
+                messages = await get_message_room(db=db, user=user, slug=slug, privat_key=privat_key)
 
-                for mess in messages:
-                    for el in mess:
-                        if mess[el][0] == 'message':
-                            new_message = decrypt_base(mess[el][1], privat_key)
-                            print(new_message)
-                            mess[el][1] = new_message.decode('utf-8')
-
-                return {"room_name": slug, 'status': True, "messages": messages}
+                return {"slug": slug, 'name': name, 'status': True, "messages": messages}
             else:
                 status = await Rooms.check_owner(db=db, username=user, name=name, slug=slug)
                 if status:
                     with open(PRIVATE_KEY_PATH, 'rb') as f:
                         privat_key = pickle.load(f)
-
-                    messages = await MessagesRoom.get_messages_from_room(db=db, username=user, slug=slug)
-                    print(messages)
-                    for mess in messages:
-                        for el in mess:
-                            if mess[el][0] == 'message':
-                                new_message = await decrypt_base(mess[el][1], privat_key)
-                                print(new_message)
-                                mess[el][1] = new_message.decode('utf-8')
+                    messages = await get_message_room(db=db, user=user, slug=slug, privat_key=privat_key)
 
                     return {"slug": slug, "name": name, 'status': status, "messages": messages}
                 else:
@@ -71,19 +56,32 @@ class ChatRoom(web.View):
         slug = str(self.request.match_info.get("slug"))
         db, session = await get_base_needed(self.request)
         data = await self.request.post()
-        token = session['token']
-        user = session['user']
+        token, user = session['token'], session['user']
+        whom_user = SITE_STORAGE[user]
         status = await check_token(session_token=token, html_token=data['csrf_token'])
         if status:
             password = data['password']
-            status = await Rooms.check_password(db=db, username=user, name=name, slug=slug,
+            status = await Rooms.check_password(db=db, username=whom_user, name=name, slug=slug,
                                                 password=password)
             if status:
                 session['flag-password-iteration'] = 'pull-password'
+                del SITE_STORAGE[user]
                 location = self.request.app.router['current_room'].url_for(name=name, slug=slug)
                 return web.HTTPFound(location=location)
         else:
             return web.HTTPError()
+
+
+async def get_message_room(db, user, slug, privat_key):
+    messages = await MessagesRoom.get_messages_from_room(db=db, username=user, slug=slug)
+    for mess in messages:
+        for el in mess:
+            if mess[el][0] == 'message':
+                new_message = await decrypt_base(mess[el][1], privat_key)
+                print(new_message)
+                mess[el][1] = new_message.decode('utf-8')
+
+    return messages
 
 
 class WebSocketRoom(web.View):
@@ -117,12 +115,11 @@ class WebSocketRoom(web.View):
                     else:
                         public_key = '@' + str(chars) + public_key
 
-                    print(public_key)
                     for ws_iter in self.request.app['websockets_room'][room_id].values():
                         await ws_iter.send_json({'text': "User connect", "user": user_name, 'info': public_key})
                 else:
                     for ws_iter in self.request.app['websockets_room'][room_id].values():
-                        await ws_iter.send_json({'text': "User connect", "user": user_name})
+                        await ws_iter.send_json({'text': "User connect", "user": user_name, 'info': status[b'public_key'].decode('utf-8')})
             else:
                 return web.HTTPForbidden()
         else:

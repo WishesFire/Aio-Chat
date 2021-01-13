@@ -7,7 +7,7 @@ from aioredis_getting import redis_convert
 from tools.get_base import get_base_needed
 from models.database import User, Message, Rooms
 from handlers.commands import time_now, curs_now
-from config import BASE_STATIC_DIR
+from config import BASE_STATIC_DIR, SITE_STORAGE
 import aiohttp_jinja2
 import base64
 import os
@@ -57,7 +57,6 @@ class Chat(web.View):
         whom_to_room = whom_to_room + '.---.' + str(whom_to_room_ver_slug)
 
         await redis.hmset(whom_to_send, user, whom_to_room)
-        return {}
 
 
 class Rules(web.View):
@@ -83,7 +82,9 @@ class Messages(web.View):
         redis = self.request.app['db_redis']
 
         lst_invite = await redis.hgetall(user, encoding='utf-8')
-        print(lst_invite)
+        for i in lst_invite:
+            print(i)
+
         lst_invite = await redis_convert(lst_invite)
 
         return {'lst_invite': lst_invite}
@@ -97,7 +98,8 @@ class Messages(web.View):
         if whom_to_send == '1-1':
             await redis.delete(user)
         else:
-            redis.hdel(user, whom_to_send)
+            SITE_STORAGE[user] = whom_to_send
+            await redis.hdel(user, whom_to_send)
         return {'status': 200}
 
 

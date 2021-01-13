@@ -1,6 +1,6 @@
 $(document).ready(function (){
     $('.join_invite').click(function (){
-        var whom_to_send = $(this).parent('.invites').children('.whom_to_send').text()
+        var whom_to_send = $(this).parents('.invites').children('.whom_to_send').text()
         Send_to_server_whom_invite(whom_to_send)
     });
 });

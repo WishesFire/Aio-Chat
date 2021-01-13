@@ -226,6 +226,13 @@ h1:hover {
     bottom: 60px;
 }
 
+.get-message {
+    font-size: 40px;
+    position: relative;
+    left: 370px;
+    bottom: 80px;
+}
+
 .myModal {
     width: 600px; height: 600px;
     margin: 0 auto;

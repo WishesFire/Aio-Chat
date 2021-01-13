@@ -6,31 +6,23 @@ import pickle
 
 async def main():
     redis = await aioredis.create_redis_pool('redis://localhost')
-    #user = 'fgsdgsdfg'
+    user = 'fgsdgsdfg'
     user1 = 'fdsagdfag12412412'
-    #user3 = 'gadfgadfg'
-    #bb = 1
-    #cc = 2
-    ll = b'4124125125125125'
+    user3 = 'gadfgadfg'
+    bb = 1
+    cc = 2
+    ll = 3
 
-    #await redis.hmset(user, bb, 1)
-    #await redis.hmset(user, cc, 6)
+    await redis.hmset(user, bb, 1)
+    await redis.hmset(user, cc, 6)
+    a = await redis.hgetall(user, encoding='utf-8')
+    print(a)
 
-    await redis.hmset(user1, 'public_key', ll)
-
-    #a = await redis.hgetall(user, encoding='utf-8')
-    b = await redis.hgetall(user1)
-    #c = await redis.hgetall(user3)
-    #print(a)
-    print(b[b'public_key'])
-    #print(c)
-
-                    #user, whom_to_send
     #await redis.hdel(user, cc)
     #a = await redis.hgetall(user, encoding='utf-8')
     #print(a)
 
-    await redis.delete(user1)
+    await redis.delete(user)
     #a = await redis.hgetall(user, encoding='utf-8')
     #print(a)
 
@@ -38,7 +30,7 @@ async def main():
     redis.close()
     await redis.wait_closed()
 
-#asyncio.run(main())
+asyncio.run(main())
 
 
 def conver():
@@ -62,7 +54,3 @@ for i in a:
         print(i['audio'][0])
     elif 'image' in i:
         print(i['image'][0])
-
-
-{'KN8b49vh1l': ['message', b'gAAAAABf9hT266jsiRbqEcmLn4kHCnN-2uLEW-WKv38BO1gdBbnLl3ZnPNvhybXBqf-nDpv0s23dNC9mS3PsJ7-An2NK6GuKWQ==']}
-

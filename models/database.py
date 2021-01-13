@@ -92,7 +92,10 @@ class Rooms:
             if name == cursor['rooms'][room][1] and slug == cursor['rooms'][room][2]:
                 if password == cursor['rooms'][room][0]:
                     return True
-        return False
+                else:
+                    return False
+            else:
+                return False
 
     @staticmethod
     async def save_room(db: AsyncIOMotorDatabase, username,  room_name, password, name, slug):
@@ -165,3 +168,17 @@ class MessagesRoom:
     @staticmethod
     async def delete_all_message_room(db: AsyncIOMotorDatabase):
         await db.MessagesRoomcollection.delete_many({})
+
+
+class BanUsers:
+    """
+        Ban users list
+    """
+    @staticmethod
+    async def add_one(db: AsyncIOMotorDatabase, username, status):
+        await db.Usercollection.insert_one({'username': username, 'status': status})
+        return True
+
+    @staticmethod
+    async def get_all(db: AsyncIOMotorDatabase):
+        pass

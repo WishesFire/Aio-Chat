@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 <title>{% block title %}Anonymous chat{% endblock %}</title>
 {% block style %}
-<link rel="stylesheet" type="text/css" href="../static/css/dropdowns_style.css">
+    <link rel="stylesheet" type="text/css" href="../static/css/dropdowns_style.css">
+    <link rel="stylesheet" type="text/css" href="../static/css/big-picture.css">
 {% endblock %}
 
 {% block content %}
@@ -75,7 +76,7 @@
                     </div>
                 {% elif message['audio'] %}
                     <div class="container">
-                       <audio controls src="{{ message['audio'] }}"> Your browser does not support the
+                       <audio class="audio-mess" controls src="{{ message['audio'] }}"> Your browser does not support the
                             <code>audio</code> element.
                        </audio>
                        <p class="hidden-text">{{ message['user'] }}</p>
@@ -112,5 +113,6 @@
     <script type="text/javascript" src="../static/js/clear_button.js"></script>
     <script type="text/javascript" src="../static/js/drop_down_menu.js"></script>
     <script type="text/javascript" src="../static/js/dropdown_menu.js"></script>
-    <script type="text/javascript" src="../static/js/block_button.js"></script>
+    <script type="text/javascript" src="../static/js/big-picture.js"></script>
+    <!-- <script type="text/javascript" src="../static/js/block_button.js"></script> -->
 {% endblock %}
