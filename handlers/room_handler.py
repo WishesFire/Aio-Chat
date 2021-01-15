@@ -106,8 +106,6 @@ class WebSocketRoom(web.View):
                 status = await redis.hgetall(room_name)
                 if status == {}:
                     public_key = Fernet.generate_key()
-                    await redis.hmset(room_name, 'public_key', public_key)
-
                     chose = randint(0, 1)
                     chars = ''.join(sample(string.ascii_letters, 10))
                     public_key = public_key.decode('utf-8')
@@ -116,6 +114,8 @@ class WebSocketRoom(web.View):
                         public_key += str(chars) + '@'
                     else:
                         public_key = '@' + str(chars) + public_key
+
+                    await redis.hmset(room_name, 'public_key', public_key.encode())
 
                     for ws_iter in self.request.app['websockets_room'][room_id].values():
                         await ws_iter.send_json({'text': "User connect", "user": user_name, 'info': public_key})
@@ -210,7 +210,13 @@ class WebSocketRoom(web.View):
                     """
                     # get key
                     public_key = await redis.hgetall(room_name)
-                    public_key = public_key[b'public_key']
+                    public_key = public_key[b'public_key'].decode('utf-8')
+                    index = public_key[-1]
+                    if index == '@':
+                        public_key = public_key[:44]
+                    else:
+                        public_key = public_key[11:]
+                    public_key = public_key.encode()
                     # main text
                     text = await decrypt_base(data, public_key)
                     text_bd = text
