@@ -68,6 +68,8 @@ class ChatRoom(web.View):
                 del SITE_STORAGE[user]
                 location = self.request.app.router['current_room'].url_for(name=name, slug=slug)
                 return web.HTTPFound(location=location)
+            else:
+                return web.HTTPFound(location='/messages')
         else:
             return web.HTTPError()
 

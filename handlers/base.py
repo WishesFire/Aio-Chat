@@ -8,6 +8,7 @@ from tools.get_base import get_base_needed
 from models.database import User, Message, Rooms
 from handlers.commands import time_now, curs_now
 from config import BASE_STATIC_DIR, SITE_STORAGE
+from random import randint
 import aiohttp_jinja2
 import base64
 import os
@@ -53,10 +54,15 @@ class Chat(web.View):
         user_ver_slug = await create_slug(user)
         whom_to_room_ver_slug = await create_slug(whom_to_room)
 
-        user = user + '.---.' + str(user_ver_slug)
-        whom_to_room = whom_to_room + '.---.' + str(whom_to_room_ver_slug)
-
-        await redis.hmset(whom_to_send, user, whom_to_room)
+        lst_invite = await redis.hgetall(whom_to_send, encoding='utf-8')
+        if lst_invite == {}:
+            user = user + '.---.' + str(user_ver_slug)
+            whom_to_room = whom_to_room + '.---.' + str(whom_to_room_ver_slug)
+            await redis.hmset(whom_to_send, user, whom_to_room)
+        else:
+            user = user + '.---.' + str(user_ver_slug) + f'___-%-_{str(randint(10, 99))}'
+            whom_to_room = whom_to_room + '.---.' + str(whom_to_room_ver_slug)
+            await redis.hmset(whom_to_send, user, whom_to_room)
 
 
 class Rules(web.View):
@@ -82,9 +88,6 @@ class Messages(web.View):
         redis = self.request.app['db_redis']
 
         lst_invite = await redis.hgetall(user, encoding='utf-8')
-        for i in lst_invite:
-            print(i)
-
         lst_invite = await redis_convert(lst_invite)
 
         return {'lst_invite': lst_invite}
@@ -135,8 +138,6 @@ class CreateRoom(web.View):
                     status = await Rooms.find_room(db=db, username=user, room_name=room_name)
                     if not status:
                         return web.HTTPForbidden()
-                        #location = self.request.app.router['current_room'].url_for(name=name, slug=slug)
-                        #return web.HTTPFound(location=location)
                     return {}
                 else:
                     token = session['token']

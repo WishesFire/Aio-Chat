@@ -14,9 +14,11 @@ async def main():
     ll = 3
 
     await redis.hmset(user, bb, 1)
-    await redis.hmset(user, cc, 6)
+    await redis.hmset(user, bb, 6)
     a = await redis.hgetall(user, encoding='utf-8')
+    b = await redis.hgetall('arbuz', encoding='utf-8')
     print(a)
+    print(b)
 
     #await redis.hdel(user, cc)
     #a = await redis.hgetall(user, encoding='utf-8')
