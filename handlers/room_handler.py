@@ -18,8 +18,7 @@ import base64
 class ChatRoom(web.View):
     @aiohttp_jinja2.template('chat_room.html')
     async def get(self):
-        name = str(self.request.match_info.get("name"))
-        slug = str(self.request.match_info.get("slug"))
+        name, slug = get_name_slug(self.request)
 
         db, session = await get_base_needed(self.request)
         try:
@@ -52,8 +51,7 @@ class ChatRoom(web.View):
             return web.HTTPFound('/')
 
     async def post(self):
-        name = str(self.request.match_info.get("name"))
-        slug = str(self.request.match_info.get("slug"))
+        name, slug = get_name_slug(self.request)
         db, session = await get_base_needed(self.request)
         data = await self.request.post()
         token, user = session['token'], session['user']
@@ -86,6 +84,12 @@ async def get_message_room(db, user, slug, privat_key):
     return messages
 
 
+async def get_name_slug(request):
+    name = str(request.match_info.get("name"))
+    slug = str(request.match_info.get("slug"))
+    return name, slug
+
+
 class WebSocketRoom(web.View):
     async def get(self):
         ws = web.WebSocketResponse()
@@ -95,8 +99,7 @@ class WebSocketRoom(web.View):
         redis = self.request.app['db_redis']
         user_name = await User.get_user(db=db, data=session.get('user'))
         if user_name:
-            name = self.request.match_info.get("name")
-            slug = self.request.match_info.get("slug")
+            name, slug = get_name_slug(self.request)
             if name and slug:
                 room_id = (name + slug).replace('/', '')
                 if room_id not in self.request.app['websockets_room']:

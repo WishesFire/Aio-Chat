@@ -1,12 +1,11 @@
 from aiohttp import web
 from jinja2 import FileSystemLoader
 from cryptography import fernet
-from handlers.base import Chat, WebSocket, Rules, CreateRoom, Messages
-from handlers.room_handler import ChatRoom, WebSocketRoom
 from aiohttp_session import setup
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from motor.motor_asyncio import AsyncIOMotorClient
 from clear_chat import clear_chat
+from urls import build_urls
 from antispam.bot import antispam_bot
 from config import SECRET_KEY_RECAPTCHA, SECRET_SITE_RECAPTCHA, BASE_DIR, MONGO_HOST, SECRET_KEY, PASSWORD_REDIS
 from config import generate_key
@@ -21,6 +20,7 @@ def main():
     app = web.Application()
     app['websockets'] = {}
     app['websockets_room'] = {}
+    app['websockets_queue'] = {}
     app['config'] = SECRET_KEY
     client = AsyncIOMotorClient(MONGO_HOST)
     app['db'] = client['AioDB']
@@ -34,14 +34,7 @@ def main():
     aiohttp_jinja2.setup(app, loader=FileSystemLoader(BASE_DIR))
     setup(app, EncryptedCookieStorage(secret_key))
 
-    app.router.add_route('*', '/', Chat, name='main')
-    app.router.add_route('GET', '/ws', WebSocket, name='sockets')
-    app.router.add_route('GET', '/ws/{name}/{slug}', WebSocketRoom, name='room_sockets')
-    app.router.add_route('GET', '/rules', Rules, name='rules')
-    app.router.add_route('*', '/rooms', CreateRoom, name='rooms')
-    app.router.add_route('*', r'/{name}/{slug}', ChatRoom, name='current_room')
-    app.router.add_route('*', '/messages', Messages, name='messages')
-    app.router.add_static('/static', 'static', name='static')
+    build_urls(app=app)
 
     logging.basicConfig(level=logging.DEBUG)
     #sll_certificate = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)

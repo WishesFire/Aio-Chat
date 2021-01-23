@@ -17,4 +17,4 @@ def create_username():
 
 
 def create_file_name():
-    return ''.join(random.choice(ascii_lowercase) for i in range(14))
+    return ''.join(random.choice(ascii_lowercase) for _ in range(10))

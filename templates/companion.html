@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+<title>{% block title %}Anonymous chat - Companion{% endblock %}</title>
+
+{% block content %}
+    <div class="username">Your nick: {{ user }}</div>
+    <button id="find-companion">Поиск</button>
+{% endblock%}
+
+{% block script %}
+    <script type="text/javascript" src="../static/js/leave-page.js"></script>
+    <script type="text/javascript" src="../static/js/ready-companion.js"></script>
+{% endblock %}
