@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from clear_chat import clear_chat
 from urls import build_urls
 from antispam.bot import antispam_bot
+from antispam import antisexs
 from config import SECRET_KEY_RECAPTCHA, SECRET_SITE_RECAPTCHA, BASE_DIR, MONGO_HOST, SECRET_KEY, PASSWORD_REDIS
 from config import generate_key
 import ssl
@@ -46,6 +47,7 @@ def main():
 async def start_back_tasks(app):
     app['db_redis'] = await aioredis.create_redis_pool('redis://localhost')
     app['clear_day'] = app.loop.create_task(clear_chat(app['db'], app['db_redis']))
+    app['check_photo'] = app.loop.create_task(antisexs.sex_message_check(app['db_redis'], app['db']))
     #app['aio_bot'] = app.loop.create_task(antispam_bot(app['db']))
 
 
@@ -60,6 +62,8 @@ async def stop_back_tasks(app):
     await app['create_key']
     #app['aio_bot'].cancel()
     #await app['aio_bot']
+    app['check_photo'].cancel()
+    await app['check_photo']
 
 
 async def shutdown(app):

@@ -1,8 +1,5 @@
 import asyncio
 import aioredis
-import numpy as np
-from cryptography.fernet import Fernet
-import pickle
 
 
 async def main():
@@ -14,9 +11,9 @@ async def main():
     cc = 2
     ll = 3
 
-    await redis.hmset('queue', 1, 1)
-    await redis.hmset('queue', 3, 6)
-    a = await redis.hgetall('queue', encoding='utf-8')
+    await redis.hmset('avr', 1, 'url:123')
+    await redis.hmset('avr', 3, 'url:321')
+    a = await redis.hgetall('a', encoding='utf-8')
     print(a)
 
     #await redis.hdel(user, cc)
@@ -33,7 +30,4 @@ async def main():
     redis.close()
     await redis.wait_closed()
 
-#asyncio.run(main())
-
-a = np.array([])
-a = np.append(a, )
+asyncio.run(main())

@@ -53,6 +53,10 @@ class Message:
     async def delete_all_messages(db: AsyncIOMotorDatabase):
         await db.Aiocollection.delete_many({})
 
+    @staticmethod
+    async def delete_image(db: AsyncIOMotorDatabase, user, image):
+        await db.Aiocollection.delete_one({'user': user, 'image': image})
+
 
 class Rooms:
     """

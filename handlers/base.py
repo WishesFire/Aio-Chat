@@ -164,6 +164,7 @@ class WebSocket(web.View):
         ws = web.WebSocketResponse()
         await ws.prepare(self.request)
 
+        self.redis = self.request.app['db_redis']
         db, session = await get_base_needed(self.request)
         user_name = await User.get_user(db=db, data=session.get('user'))
         if user_name:
@@ -202,6 +203,7 @@ class WebSocket(web.View):
                     with open(photo_name_url, 'wb') as f:
                         f.write(file)
 
+                    await self.save_check_photo(send_name_photo_url, user_name)
                     status = await Message.save_message(db=db, user=user_name, image=send_name_photo_url)
                     if status:
                         name_rooms = await Rooms.get_user_room(db=db, username=user_name)
@@ -290,6 +292,9 @@ class WebSocket(web.View):
             for wss in self.request.app['websockets'].values():
                 await wss.send_json({'disconnect': count_connection})
                 return ws
+
+    async def save_check_photo(self, path, user_name):
+        await self.redis.hmset('avr', path, user_name)
 
     async def commands(self, text):
         if text == '/time':

@@ -7,7 +7,7 @@ SECRET_KEY_RECAPTCHA = '*'
 SITE_STORAGE = {}
 BASE_DIR = f'{os.path.dirname(os.path.dirname(__file__))}/aiochat/templates'
 BASE_STATIC_DIR = os.path.abspath(f'{os.path.dirname(os.path.dirname(__file__))}/aiochat/static')
-MONGO_HOST = '*'
+MONGO_HOST = 'mongodb+srv://WishesFire:1NQz6tTf8WUpKV7N@cluster.gmwe0.mongodb.net/AioDB?retryWrites=true&w=majority'
 SECRET_KEY = '68028350928350928502899'
 FORM_FIELD_NAME = '_csrf_token'
 COOKIE_NAME = 'csrf_token'
