@@ -1,6 +1,5 @@
 import aioredis
 from config import PASSWORD_REDIS
-from Crypto.Random import get_random_bytes
 
 
 async def listen_to_redis():

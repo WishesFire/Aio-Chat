@@ -5,7 +5,7 @@ from aiohttp_session import setup
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from motor.motor_asyncio import AsyncIOMotorClient
 from clear_chat import clear_chat
-from urls import build_urls
+from urls import routes
 from antispam.bot import antispam_bot
 from antispam import antisexs
 from config import SECRET_KEY_RECAPTCHA, SECRET_SITE_RECAPTCHA, BASE_DIR, MONGO_HOST, SECRET_KEY, PASSWORD_REDIS
@@ -35,7 +35,10 @@ def main():
     aiohttp_jinja2.setup(app, loader=FileSystemLoader(BASE_DIR))
     setup(app, EncryptedCookieStorage(secret_key))
 
-    build_urls(app=app)
+    for route in routes:
+        app.router.add_route(route[0], route[1], route[2], name=route[3])
+    app['static_root_url'] = '/static'
+    app.router.add_static('/static', 'static', name='static')
 
     logging.basicConfig(level=logging.DEBUG)
     #sll_certificate = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
